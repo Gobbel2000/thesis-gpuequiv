@@ -1,0 +1,125 @@
+% Encoding: UTF-8
+
+'
+@Article{Merrill2015,
+  author     = {Merrill, Duane and Garland, Michael and Grimshaw, Andrew},
+  journal    = {ACM Transactions on Parallel Computing},
+  title      = {High-{Performance} and {Scalable} {GPU} {Graph} {Traversal}},
+  year       = {2015},
+  issn       = {2329-4949},
+  month      = feb,
+  number     = {2},
+  pages      = {14:1--14:30},
+  volume     = {1},
+  abstract   = {Breadth-First Search (BFS) is a core primitive for graph traversal and a basis for many higher-level graph analysis algorithms. It is also representative of a class of parallel computations whose memory accesses and work distribution are both irregular and data dependent. Recent work has demonstrated the plausibility of GPU sparse graph traversal, but has tended to focus on asymptotically inefficient algorithms that perform poorly on graphs with nontrivial diameter. We present a BFS parallelization focused on fine-grained task management constructed from efficient prefix sum computations that achieves an asymptotically optimal O({\textbar}V{\textbar} + {\textbar}E{\textbar}) gd work complexity. Our implementation delivers excellent performance on diverse graphs, achieving traversal rates in excess of 3.3 billion and 8.3 billion traversed edges per second using single- and quad-GPU configurations, respectively. This level of performance is several times faster than state-of-the-art implementations on both CPU and GPU platforms.},
+  comment    = {BFS on GPU. Many useful techniques, but sometimes little detail.
+CSR sparse matrix format for representing graph in the GPU.},
+  doi        = {10.1145/2717511},
+  file       = {:../literature/gpu_graph_traversal.pdf:PDF},
+  keywords   = {sparse graphs, graph traversal, Breadth-first search, GPU, prefix sum, graph algorithms, parallel algorithms},
+  ranking    = {rank3},
+  readstatus = {read},
+  url        = {https://doi.org/10.1145/2717511},
+  urldate    = {2023-08-10},
+}
+
+'
+@InProceedings{MendezLojo2012a,
+  author     = {Mendez-Lojo, Mario and Burtscher, Martin and Pingali, Keshav},
+  booktitle  = {Proceedings of the 17th {ACM} {SIGPLAN} symposium on {Principles} and {Practice} of {Parallel} {Programming}},
+  title      = {A {GPU} implementation of inclusion-based points-to analysis},
+  year       = {2012},
+  address    = {New York, NY, USA},
+  month      = feb,
+  pages      = {107--116},
+  publisher  = {Association for Computing Machinery},
+  series     = {{PPoPP} '12},
+  abstract   = {Graphics Processing Units (GPUs) have emerged as powerful accelerators for many regular algorithms that operate on dense arrays and matrices. In contrast, we know relatively little about using GPUs to accelerate highly irregular algorithms that operate on pointer-based data structures such as graphs. For the most part, research has focused on GPU implementations of graph analysis algorithms that do not modify the structure of the graph, such as algorithms for breadth-first search and strongly-connected components. In this paper, we describe a high-performance GPU implementation of an important graph algorithm used in compilers such as gcc and LLVM: Andersen-style inclusion-based points-to analysis. This algorithm is challenging to parallelize effectively on GPUs because it makes extensive modifications to the structure of the underlying graph and performs relatively little computation. In spite of this, our program, when executed on a 14 Streaming Multiprocessor GPU, achieves an average speedup of 7x compared to a sequential CPU implementation and outperforms a parallel implementation of the same algorithm running on 16 CPU cores. Our implementation provides general insights into how to produce high-performance GPU implementations of graph algorithms, and it highlights key differences between optimizing parallel programs for multicore CPUs and for GPUs.},
+  comment    = {More complicated graph algorithm requiring mutating the graph a lot, which poses additional challenges on the graph data structure.},
+  doi        = {10.1145/2145816.2145831},
+  isbn       = {9781450311601},
+  keywords   = {irregular programs, graph algorithms, CUDA, inclusion-based points-to analysis, GPU},
+  readstatus = {skimmed},
+  url        = {https://doi.org/10.1145/2145816.2145831},
+  urldate    = {2023-08-11},
+}
+
+'
+@Article{Hijma2023,
+  author   = {Hijma, Pieter and Heldens, Stijn and Sclocco, Alessio and van Werkhoven, Ben and Bal, Henri E.},
+  journal  = {ACM Computing Surveys},
+  title    = {Optimization {Techniques} for {GPU} {Programming}},
+  year     = {2023},
+  issn     = {0360-0300},
+  month    = mar,
+  number   = {11},
+  pages    = {239:1--239:81},
+  volume   = {55},
+  abstract = {In the past decade, Graphics Processing Units have played an important role in the field of high-performance computing and they still advance new fields such as IoT, autonomous vehicles, and exascale computing. It is therefore important to understand how to extract performance from these processors, something that is not trivial. This survey discusses various optimization techniques found in 450 articles published in the last 14 years. We analyze the optimizations from different perspectives which shows that the various optimizations are highly interrelated, explaining the need for techniques such as auto-tuning.},
+  comment  = {Very comprehensive list, good vocabulary, more than 400 references.},
+  doi      = {10.1145/3570638},
+  file     = {:../literature/Hijma2023 - Optimization Techniques for GPU Programming.pdf:PDF},
+  keywords = {optimization, performance bottleneck, Survey, GPU, optimization techniques},
+  ranking  = {rank5},
+  url      = {https://dl.acm.org/doi/10.1145/3570638},
+  urldate  = {2023-08-11},
+}
+
+'
+@Misc{Levien2021,
+  author     = {Raph Levien},
+  month      = nov,
+  title      = {Prefix sum on portable compute shaders},
+  year       = {2021},
+  abstract   = {This is a followup to my previous post, prefix sum on Vulkan. Last year, I got a fancy algorithm for this problem running well on one device. This time, I will dive into the question of how to make it work well across a wide range of devices. The short answer is, it can be made to work pretty portably on Vulkan and DX12, but Metal remains out of reach, at least for now, as is WebGPU. Even on Vulkan, there are some sharp edges to watch out for.},
+  comment    = {Prefix sum does not work on WebGPU because of limitations in Metal.},
+  journal    = {Raph Levien’s blog},
+  language   = {en},
+  readstatus = {read},
+  url        = {https://raphlinus.github.io/gpu/2021/11/17/prefix-sum-portable.html},
+  urldate    = {2023-08-11},
+}
+
+@misc{bisping2023process,
+  title={Process Equivalence Problems as Energy Games}, 
+  author={Benjamin Bisping},
+  year={2023},
+  eprint={2303.08904},
+  archivePrefix={arXiv},
+  primaryClass={cs.DS},
+}
+
+@misc{bisping2023silent,
+  title={Linear-Time-Branching-Time Spectroscopy Accounting for Silent Steps}, 
+  author={Bisping, Benjamin and Jansen, David N.},
+  year={2023},
+  primaryClass={cs.DS},
+}
+
+@InProceedings{bn2019coupledsimTacas,
+  author    = {Bisping, Benjamin and Nestmann, Uwe},
+  title     = {Computing Coupled Similarity},
+  booktitle = {Proceedings of {TACAS}},
+  series    = {LNCS},
+  publisher = {Springer},
+  doi       = {10.1007/978-3-030-17462-0_14},
+  pages     = {244--261},
+  year      = 2019
+}
+
+@InProceedings{glabbeek1990spectrum,
+  author="van Glabbeek, R. J.",
+  editor="Baeten, J. C. M.
+  and Klop, J. W.",
+  title="The linear time - branching time spectrum",
+  booktitle="CONCUR '90 Theories of Concurrency: Unification and Extension",
+  year="1990",
+  publisher="Springer Berlin Heidelberg",
+  address="Berlin, Heidelberg",
+  pages="278--297",
+  abstract="In this paper eleven semantics in the linear time --- branching time spectrum are presented in a uniform, model-independent way. Restricted to the domain of finitely branching, concrete, sequential processes, most semantics found in the literature that can be defined uniformly in terms of action relations coincide with one of these eleven. Several testing scenarios, motivating these semantics, are presented, phrased in terms of `button pushing experiments' on generative and reactive machines. Finally nine of these semantics are applied to a simple language for finite, concrete, sequential, nondeterministic processes, and for each of them a complete axiomatization is provided.",
+  isbn="978-3-540-46395-5",
+  doi={https://doi.org/10.1007/BFb0039066}
+}
+
+@Comment{jabref-meta: databaseType:bibtex;}

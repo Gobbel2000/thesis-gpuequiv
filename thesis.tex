@@ -1,0 +1,45 @@
+\documentclass[a4paper]{report}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{babel}
+
+\title{
+    {Accelerating Process Equivalence Energy Games using WebGPU}\\
+    {\large Technische Universität Berlin}\\
+}
+\author{Gabriel Benediktus Vogel}
+
+\begin{document}
+
+\maketitle
+
+%\begin{abstract}
+%TODO Abstract
+%\end{abstract}
+
+\tableofcontents
+
+\chapter{Introduction}
+\input{chapters/01-introduction}
+
+\chapter{Processes and Equivalences}
+\input{chapters/02-processes}
+
+\chapter{GPU Compute Programming}
+\input{chapters/03-gpu}
+
+\chapter{Implementing the Spectroscopy Algorithm in WebGPU}
+\input{chapters/04-implementation}
+
+\chapter{Benchmarks and Evaluation of the Implementation}
+\input{chapters/05-evaluation}
+
+\chapter{Conclusion}
+\input{chapters/06-conclusion}
+
+\bibliographystyle{ieeetr}
+\nocite{*}
+\bibliography{bibliography}
+
+\end{document}
