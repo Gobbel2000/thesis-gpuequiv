@@ -1,0 +1,48 @@
+name: 'Compile LaTeX document using latexmk'
+
+on:
+  workflow_dispatch:
+
+  push:
+    branches:
+      - master
+
+jobs:
+  compile:
+    runs-on: "ubuntu-latest"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install LaTeX
+        run: sudo apt-get install --no-install-recommends latexmk
+      - name: Compile
+        run: latexmk -pdf -file-line-error -halt-on-error -interaction=nonstopmode
+      - name: Create Tag name
+        run: |
+          DATE=$(TZ='Europe/Berlin' git log -1 --pretty=format:%ad --date=format:%FT%H%M)
+          echo "Artifact name: ${DATE}"
+          echo "COMMIT_DATE=${DATE}" >> "$GITHUB_ENV"
+      # Step for creating a tag from: https://stackoverflow.com/a/64479344
+      - name: Create Tag
+        if: ${{ github.event_name == 'push' }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.git.createRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: 'refs/tags/${{ env.COMMIT_DATE }}',
+              sha: context.sha,
+            })
+      - name: Release
+        if: ${{ github.event_name == 'push' }}
+        uses: softprops/action-gh-release@v1
+        with:
+          name: PDF ${{ env.COMMIT_DATE }}
+          tag_name: ${{ env.COMMIT_DATE }}
+          files: thesis.pdf
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pdf-${{ env.COMMIT_DATE }}
+          path: thesis.pdf
