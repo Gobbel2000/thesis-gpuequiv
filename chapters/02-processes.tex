@@ -1,7 +1,40 @@
+In order to talk about the algorithm to find equivalences between processes
+and its GPU implementation,
+we will first introduce the models that all this is based on.
+First and foremost this includes an explanation and definition
+of the models we use to represent processes.
+Further we will explore different ways to compare two processes
+and how that leads us to the equivalence spectrum
+\cite{glabbeek1990spectrum}.
+Finally we will outline how the algorithm works,
+that gives us a multifaceted view of the relation of two processes
+by testing multiple of those equivalences at once
+\cite{bisping2023process}.
+
 \section{Modeling Processes}
+
+For our purposes we can think of a process as the set of actions it can perform.
+After each of these actions the process enters a new state,
+which is itself another process with another set of actions.
+This forms a sort of state machine that at every step
+moves to some other state by performing one of the currently available actions.
+The series of actions being chosen
+constitute the observable behavior of the machine,
+while its current state defines what actions it can do next.
+
+This state machine can then be seen as a directed graph
+with a node for each state and an edge between two nodes,
+if it can transition its state from one to the other.
+Each edge is labeled with the action that is performed during the state
+transition.
+Such a graph is called a \emph{Labeled transition system} or \emph{LTS} for
+short.
+
+%Next: formal definition
+
 
 \section{Equivalences between Processes}
 
-\section{Spectroscopy Algorithm for finding Equivalences}
+\section{Spectroscopy Algorithm}
 
 \section{Energy Games}
