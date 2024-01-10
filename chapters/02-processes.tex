@@ -28,10 +28,29 @@ if it can transition its state from one to the other.
 Each edge is labeled with the action that is performed during the state
 transition.
 Such a graph is called a \emph{Labeled transition system} or \emph{LTS} for
-short.
+short
+\cite{reactive_systems}.
 
-%Next: formal definition
+% Formal definition
 
+\begin{definition}
+    A labeled transition system is a triple
+    $(\mathsf{Proc}, \mathsf{Act}, \rightarrow)$
+    where:
+
+    \begin{itemize}
+        \item $\mathsf{Proc}$ is the set of states or processes,
+        \item $\mathsf{Act}$ is a set of actions,
+        \item $\rightarrow \subseteq \mathsf{Proc} \times \mathsf{Act} \times \mathsf{Proc}$
+            is the transition relation.
+            We also write
+            $p \xrightarrow{\alpha} p'$ for $(p, \alpha, p') \in \rightarrow$,
+            meaning we can transition from state $p$ to $p'$
+            using the action $\alpha$.
+    \end{itemize}
+\end{definition}
+
+% Maybe introduce an example here.
 
 \section{Equivalences between Processes}
 
