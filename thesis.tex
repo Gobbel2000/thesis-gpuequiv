@@ -8,6 +8,20 @@
 \usepackage{amssymb}
 \usepackage{amsthm}
 
+\usepackage{tikz}
+\usetikzlibrary{positioning}
+
+% Vertically centered vdots, taken from:
+% https://tex.stackexchange.com/questions/112204/how-to-vertically-center-the-vdots-in-this-node
+\makeatletter
+\DeclareRobustCommand{\rvdots}{%
+  \vbox{
+    \baselineskip4\p@\lineskiplimit\z@
+    \kern-\p@
+    \hbox{.}\hbox{.}\hbox{.}
+  }}
+\makeatother
+
 \theoremstyle{definition}
 \newtheorem{definition}{Definition}
 

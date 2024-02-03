@@ -1,3 +1,79 @@
+\section{Parallelizing the Algorithm}
+
+At the center of this contribution is a parallel GPU-implementation%
+\footnote{The code can be found at \url{https://github.com/Gobbel2000/gpuequiv}}
+of the energy game introduced in section \ref{sec:energy_games}.
+Given a game graph as input, it calcu\-lates for each position the energy budgets
+required for the attacker, starting at the current position, to win the game.
+
+
+
+\begin{figure}[h]
+\begin{center}
+\begin{tikzpicture}[inner sep=1mm]
+    \node[rectangle,draw] (start_node) {\large{$g$}};
+    \node (successor1) [right=of start_node,label=above:successors] {$g_1'$};
+
+    % Energies of successors
+    \node (energy1_1) [right=of successor1] {$e_{g_1',1}$};
+    \node (energy1_2) [below] at (energy1_1.south) {$e_{g_1',2}$};
+    \node (dots1) [below] at (energy1_2.south) {\rvdots};
+    \node (energy2_1) [below] at (dots1.south) {$e_{g_2',1}$};
+    \node (energy2_2) [below] at (energy2_1.south) {$e_{g_2',2}$};
+    \node (dots2) [below] at (energy2_2.south) {\rvdots};
+
+    \node (successor2) [left=of energy2_1] {$g_2'$};
+    \node (dots_successors) at (successor2 |- dots2) {\rvdots};
+
+    % Updated energies
+    \node (updated1_1) [right=of energy1_1] {$e_{g_1',1}'$};
+    \node (updated1_2) [right=of energy1_2] {$e_{g_1',2}'$};
+    \node (udots1) at (updated1_2 |- dots1) {\rvdots};
+    \node (updated2_1) [right=of energy2_1] {$e_{g_2',1}'$};
+    \node (updated2_2) [right=of energy2_2] {$e_{g_2',2}'$};
+    \node (udots2) at (updated2_2 |- dots2) {\rvdots};
+    % Include energies of g itself
+    %\node (energyg_1) [below] at (udots2.south) {$e_{g,1}$};
+    %\node (energyg_2) [below] at (energyg_1.south) {$e_{g,2}$};
+    %\node (udots3) [below] at (energyg_2.south) {\rvdots};
+
+    % Minimized energies
+    \node (minimal1) [right=14mm of udots1.north] {$e_1^*$};
+    \node (minimal2) [below] at (minimal1.south) {$e_2^*$};
+    \node (mdots) [below] at (minimal2.south) {\rvdots};
+
+    \draw[->] (start_node.east) -- (successor1.west);
+    \draw[->] (start_node.east) -- (successor2.west);
+    \draw[->] (successor1) -- (energy1_1.west);
+    \draw[->] (successor1) -- (energy1_2.west);
+    \draw[->] (successor1) -- (energy1_2.west |- dots1);
+    \draw[->] (successor2) -- (energy2_1.west);
+    \draw[->] (successor2) -- (energy2_2.west);
+    \draw[->] (successor2) -- (energy2_2.west |- dots2);
+
+    \draw[->] (energy1_1) -- node (l_update) [above=2mm] {update} (updated1_1);
+    \draw[->] (energy1_2) -- (updated1_2);
+    \draw[->] (energy1_2.east |- dots1) -- (updated1_2.west |- udots1);
+    \draw[->] (energy2_1) -- (updated2_1);
+    \draw[->] (energy2_2) -- (updated2_2);
+    \draw[->] (energy2_2.east |- dots2) -- (updated2_2.west |- udots2);
+    % Energies from g
+    %\draw[->,shorten >= 4mm] (start_node.south) |-
+    %    node [near end,below] {energies of $g$}
+    %    (energyg_2.west);
+
+    % Diagonal lines suggesting the reduction to minimal energies
+    \draw[thick] (updated1_1.east |- udots2.south) -- (minimal1.west |- mdots.south);
+    \draw[thick] (updated1_1.north east) -- (minimal1.north west);
+    \node (l_minimize) [right=7mm of l_update] {minimize};
+\end{tikzpicture}
+\end{center}
+\caption{Data flow for processing Attack positions}%
+\label{fig:attack}
+\end{figure}
+
+
+
 \section{Data Layout}
 
 \section{Control Flow}
