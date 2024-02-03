@@ -95,6 +95,12 @@ short
             energy update to each edge.
         \item $v_0 \in G$ is the start position of the game.
     \end{itemize}
+
+    The function $\mathrm{Succ}: G \rightarrow 2^G$ gives the successors in the
+    graph for a position.
+    For each $g \in G$, $\mathrm{Succ}(g) = \{g' \in G \mid (g, g') \in E\}$.
+    Similarly, $\mathrm{Pred}(g) = \{g' \in G \mid (g', g) \in E\}$ yields a
+    position's predecessors.
 \end{definition}
 
 \begin{definition}[Plays and costs]
@@ -102,8 +108,8 @@ short
     $\rho = g_0g_1 \ldots g_n$ where at each step
     $g_i \in G$ and $(g_i, g_{i+1}) \in E$.
 
-    If a play cannot be further extended, that is, there exists no position
-    $g_{n+1} \in G$ such that $(g_n, g_{n+1}) \in E$,
+    If a play cannot be further extended, that is,
+    $\mathrm{Succ}(g_n) = \emptyset$,
     that play is won by the player who is not stuck:
     if $g_n \in G_a$, the defender wins, if $g_n \in G_d$, the attacker wins.
     Infinite plays are won by the defender.

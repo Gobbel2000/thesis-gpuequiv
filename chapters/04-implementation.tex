@@ -5,12 +5,86 @@ At the center of this contribution is a parallel GPU-implementation%
 of the energy game introduced in section \ref{sec:energy_games}.
 Given a game graph as input, it calcu\-lates for each position the energy budgets
 required for the attacker, starting at the current position, to win the game.
+This algorithm was described in \cite{bisping2023process} as part of the
+spectroscopy algorithm, as well as in \cite{brihaye2023multi} by T. Brihaye and
+A. Goeminne, which more generally covers
+\enquote{Multi-Weighted Reachability Games},
+but presents essentially the same algorithm structure.
+
+\begin{algorithm}[t] \label{alg:energy_game}
+    \DontPrintSemicolon
+    \SetKwData{Start}{start}
+    \SetKwData{Visit}{visit}
+    \SetKwData{Energies}{energies}
+    \SetKwData{Updated}{updated}
+    \SetKwData{New}{new\_energies}
+    \SetKwFor{pFor}{for parallel}{do}{end}
+
+    $\Start = \{g \in G_d \mid \mathrm{Succ}(g) = \emptyset\}$\;
+    \lFor{$g \in \Start$}{$\Energies[g] = \{\mathbf{0}\}$}
+    \lFor{$g \in G \setminus \Start$}{$\Energies[g] = \emptyset$}
+    $\Visit = \{\mathrm{Pred}(g) \mid g \in \Start\}$\;
+
+    \BlankLine
+    \While{$\Visit \neq \emptyset$}{
+        \pFor{$g \in \Visit$}{
+            $\Visit = \Visit \setminus \{g\}$\;
+            \For{$g' \in \mathrm{Succ}(g)$}{
+                $\Updated[g'] = \{ \mathsf{upd}(e, w(g, g')) \mid e \in \Energies[g'] \}$
+            }
+
+            \BlankLine
+            \eIf(\tcp*[h]{attack positions}){$g \in G_a$}{
+                $\New = \mathrm{Min} \left(
+                    \bigcup_{g' \in \mathrm{Succ}(g)} \uparrow \Updated[g']
+                \right)$
+            }(\tcp*[h]{defend positions}){
+                $\New = \mathrm{Min} \left(
+                    \bigcap_{g' \in \mathrm{Succ}(g)} \uparrow \Updated[g']
+                \right)$
+            }
+
+            \BlankLine
+            \If{$\New \neq \Energies[g]$}{
+                $\Energies[g] = \New$\;
+                $\Visit = \Visit \cup \mathrm{Pred}(g)$\;
+            }
+        }
+    }
+    \Return{\Energies}
+
+    \caption{Parallel Energy Game}
+\end{algorithm}
+
+The basic structure is as shown in Algorithm \ref{alg:energy_game}.
+In order to calculate all the winning budgets,
+we start at the end of the game graph and work our way backwards.
+At all defend positions with no successors the attacker immediately wins,
+so we can set the energies required for the attacker to win there to the
+0-valued energy tuple (lines 1-3).
+In every iteration a set of positions is visited which updates its associated
+energies.
+The next iteration visits the predecessors of all positions, whose energies
+have changed in the previous iteration, thus walking backwards in the game
+graph in a breadth-first manner. Once an iteration caused no changes to the
+energies, the algorithm terminates.
+
+We achieve parallelization by visiting all positions in the visit list in
+parallel, but to fully take advantage of the massively multithreaded
+GPU-architecture, each position is further processed by multiple threads.
+
+The core of the algorithm lies in lines 11-15, where the upwards-closed sets of
+energies are either unioned or intersected.
+Both operations demand very different approaches.
+The following two sections detail how these operations have been implemented to
+efficiently run on a GPU.
 
 
+\subsection{Attack shader: Union}
 
-\begin{figure}[h]
+\begin{figure}[t]
 \begin{center}
-\begin{tikzpicture}[inner sep=1mm]
+\begin{tikzpicture}
     \node[rectangle,draw] (start_node) {\large{$g$}};
     \node (successor1) [right=of start_node,label=above:successors] {$g_1'$};
 
@@ -72,7 +146,7 @@ required for the attacker, starting at the current position, to win the game.
 \label{fig:attack}
 \end{figure}
 
-
+\subsection{Defend shader: Intersection}
 
 \section{Data Layout}
 
