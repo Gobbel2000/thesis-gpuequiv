@@ -3,13 +3,11 @@ and its GPU implementation,
 we will first introduce the models that all this is based on.
 First and foremost this includes an explanation and definition
 of the models we use to represent processes.
-Further we will explore different ways to compare two processes
-and how that leads us to the equivalence spectrum
-\cite{glabbeek1990spectrum}.
+Further we will explore different ways to compare two processes and how that
+leads us to the equivalence spectrum~\cite{glabbeek1990spectrum}.
 Finally we will outline how the algorithm works,
-that gives us a multifaceted view of the relation of two processes
-by testing multiple of those equivalences at once
-\cite{bisping2023process}.
+that gives us a multifaceted view of the relation of two processes by testing
+multiple of those equivalences at once~\cite{bisping2023process}.
 
 \section{Modeling Processes}
 
@@ -27,13 +25,12 @@ with a node for each state and an edge between two nodes,
 if it can transition its state from one to the other.
 Each edge is labeled with the action that is performed during the state
 transition.
-Such a graph is called a \emph{Labeled transition system} or \emph{LTS} for
-short
-\cite{reactive_systems}.
+Such a graph is called a \emph{Labeled transition system}
+or \emph{LTS} for short~\cite{reactive_systems}.
 
 % Formal definition
 
-\begin{definition}
+\begin{definition} (Labeled transition system~\cite{reactive_systems})
     A labeled transition system is a triple
     $(\mathsf{Proc}, \mathsf{Act}, \rightarrow)$
     where:
@@ -56,16 +53,16 @@ short
 
 \section{Spectroscopy Algorithm}
 
-\section{Energy Games} \label{sec:energy_games}
+\section{Energy Games}\label{sec:energy_games}
 
-\begin{definition}[Energy updates \cite{bisping2023process}] \label{def:update}
+\begin{definition}[Energy updates~\cite{bisping2023process}]\label{def:update}
     The set of $N$-dimensional energy updates $\mathbf{Up}_N$ contains
     $N$-tuples $(u_1, \ldots, u_N) \in \mathbf{Up}_N$ where each update $u_k, k
     \in [N]$ is
     either
     \begin{itemize}
         \item $u_k \in \{-1, 0\}$, or
-        \item $u_k = \mathtt{min}_D$ where $D \subseteq [N]$ and $k \in D$.
+        \item $u_k = \mathtt{min}_D$ where $D \subseteq [N]$ and $k \in D$. % chktex 35
     \end{itemize}
 
     The function
@@ -73,15 +70,15 @@ short
     applies an update to an energy tuple.
     The $k$-th component is given as:
     \begin{equation*}
-        \mathsf{upd}_N(e, u)_k =
+        \mathsf{upd}_N{(e, u)}_k =
         \begin{cases}
             e_k + u_k,\quad &\text{if } u_k \in \{-1, 0\}, \\
-            \min_{d \in D}{e_d},\quad &\text{if } u_k = \mathtt{min}_D.
+            \min_{d \in D}{e_d},\quad &\text{if } u_k = \mathtt{min}_D. % chktex 35
         \end{cases}
     \end{equation*}
 \end{definition}
 
-\begin{definition}[Energy Games] \label{def:energy_game}
+\begin{definition}[Energy Games]\label{def:energy_game}
     We define an $N$-dimensional energy game as
     $(G, G_a, G_d, E, w, v_0)$, where 
     \begin{itemize}

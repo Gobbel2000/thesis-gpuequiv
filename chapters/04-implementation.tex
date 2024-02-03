@@ -2,16 +2,16 @@
 
 At the center of this contribution is a parallel GPU-implementation%
 \footnote{The code can be found at \url{https://github.com/Gobbel2000/gpuequiv}}
-of the energy game introduced in section \ref{sec:energy_games}.
+of the energy game introduced in Section~\ref{sec:energy_games}.
 Given a game graph as input, it calcu\-lates for each position the energy budgets
 required for the attacker, starting at the current position, to win the game.
-This algorithm was described in \cite{bisping2023process} as part of the
-spectroscopy algorithm, as well as in \cite{brihaye2023multi} by T. Brihaye and
+This algorithm was described in~\cite{bisping2023process} as part of the
+spectroscopy algorithm, as well as in~\cite{brihaye2023multi} by T. Brihaye and
 A. Goeminne, which more generally covers
 \enquote{Multi-Weighted Reachability Games},
 but presents essentially the same algorithm structure.
 
-\begin{algorithm}[t] \label{alg:energy_game}
+\begin{algorithm}[t]\label{alg:energy_game}
     \DontPrintSemicolon
     \SetKwData{Start}{start}
     \SetKwData{Visit}{visit}
@@ -29,7 +29,7 @@ but presents essentially the same algorithm structure.
     \While{$\Visit \neq \emptyset$}{
         \pFor{$g \in \Visit$}{
             $\Visit = \Visit \setminus \{g\}$\;
-            \For{$g' \in \mathrm{Succ}(g)$}{
+            \For{$g' \in \mathrm{Succ}(g)$} {
                 $\Updated[g'] = \{ \mathsf{upd}(e, w(g, g')) \mid e \in \Energies[g'] \}$
             }
 
@@ -38,7 +38,7 @@ but presents essentially the same algorithm structure.
                 $\New = \mathrm{Min} \left(
                     \bigcup_{g' \in \mathrm{Succ}(g)} \uparrow \Updated[g']
                 \right)$
-            }(\tcp*[h]{defend positions}){
+            } (\tcp*[h]{defend positions}) {
                 $\New = \mathrm{Min} \left(
                     \bigcap_{g' \in \mathrm{Succ}(g)} \uparrow \Updated[g']
                 \right)$
@@ -56,12 +56,12 @@ but presents essentially the same algorithm structure.
     \caption{Parallel Energy Game}
 \end{algorithm}
 
-The basic structure is as shown in Algorithm \ref{alg:energy_game}.
+The basic structure is as shown in Algorithm~\ref{alg:energy_game}.
 In order to calculate all the winning budgets,
 we start at the end of the game graph and work our way backwards.
 At all defend positions with no successors the attacker immediately wins,
 so we can set the energies required for the attacker to win there to the
-0-valued energy tuple (lines 1-3).
+0-valued energy tuple (lines 1--3).
 In every iteration a set of positions is visited which updates its associated
 energies.
 The next iteration visits the predecessors of all positions, whose energies
@@ -73,11 +73,11 @@ We achieve parallelization by visiting all positions in the visit list in
 parallel, but to fully take advantage of the massively multithreaded
 GPU-architecture, each position is further processed by multiple threads.
 
-The core of the algorithm lies in lines 11-15, where the upwards-closed sets of
+The core of the algorithm lies in lines 11--15, where the upwards-closed sets of
 energies are either unioned or intersected.
 Both operations demand very different approaches.
 The following two sections detail how these operations have been implemented to
-efficiently run on a GPU.
+efficiently run on a GPU\@.
 
 
 \subsection{Attack shader: Union}
