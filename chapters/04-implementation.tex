@@ -11,12 +11,13 @@ A. Goeminne, which more generally covers
 \enquote{Multi-Weighted Reachability Games},
 but presents essentially the same algorithm structure.
 
-\begin{algorithm}[t]\label{alg:energy_game}
+% First, definitions that are also used outside the algorithm
+\SetKwData{Updated}{updated}
+\SetKwData{Energies}{energies}
+\begin{algorithm}[ht]\label{alg:energy_game}
     \DontPrintSemicolon
     \SetKwData{Start}{start}
     \SetKwData{Visit}{visit}
-    \SetKwData{Energies}{energies}
-    \SetKwData{Updated}{updated}
     \SetKwData{New}{new\_energies}
     \SetKwFor{pFor}{for parallel}{do}{end}
 
@@ -30,7 +31,7 @@ but presents essentially the same algorithm structure.
         \pFor{$g \in \Visit$}{
             $\Visit = \Visit \setminus \{g\}$\;
             \For{$g' \in \mathrm{Succ}(g)$} {
-                $\Updated[g'] = \{ \mathsf{upd}(e, w(g, g')) \mid e \in \Energies[g'] \}$
+                $\Updated[g'] = \{ \mathsf{upd}^{-1}(e, w(g, g')) \mid e \in \Energies[g'] \}$
             }
 
             \BlankLine
@@ -75,14 +76,32 @@ GPU-architecture, each position is further processed by multiple threads.
 
 The core of the algorithm lies in lines 11--15, where the upwards-closed sets of
 energies are either unioned or intersected.
-Both operations demand very different approaches.
+Since both operations demand very different approaches,
+handling them in a single shader would inevitably incur high branch-divergence.
+Therefore both cases are handled by separate, more regular shaders:
+one for processing attack positions, another for defend positions.
+This technique is known as \enquote{Kernel fission}
+and improves resource utilization by allowing threads in a work group to follow
+similar instruction paths~\cite{Hijma2023}.
 The following two sections detail how these operations have been implemented to
 efficiently run on a GPU\@.
 
 
 \subsection{Attack shader: Union}
 
-\begin{figure}[t]
+In order to calculate the union of the upwards-closed sets,
+we can simply unionize the minimal elements that the sets are represented by:
+
+\[\mathrm{Min} \left( \bigcup_{g' \in \mathrm{Succ}(g)} \uparrow \Updated[g'] \right) =
+  \mathrm{Min} \left( \bigcup_{g' \in \mathrm{Succ}(g)}          \Updated[g'] \right)\]
+
+The task thus becomes to simply
+collect all energies of the current position's successors,
+update them accordingly
+and then filter out non-minimal energies.
+This workflow is sketched out in Figure~\ref{fig:attack}.
+
+\begin{figure}[ht]
 \begin{center}
 \begin{tikzpicture}
     \node[rectangle,draw] (start_node) {\large{$g$}};
@@ -146,10 +165,40 @@ efficiently run on a GPU\@.
 \label{fig:attack}
 \end{figure}
 
+The layout of this figure suggests a very natural way to further parallelize
+the processing of attack nodes:
+we spawn one thread for each energy tuple.
+The shader then has two tasks:
+\begin{enumerate}
+    \item Update its energy using the correct edge weight,
+    \item Figure out if it should be kept as a minimal energy or discarded.
+\end{enumerate}
+
+The update step basically follows the definition of $\mathsf{upd}^{-1}$.
+Minimizing the energies is done by comparing all energy tuples with each other.
+Let $n = \sum_{g' \in \mathrm{Succ}(g)} | \Energies[g'] |$ be the total number
+of energies considered for a starting node $g$.
+We do $n^2$ comparisons in total, where each thread checks all $n$
+energies to find out if this thread's energy is part of the minimal set.
+If the thread for energy $e$ encounters an energy $e'$ with $e' \leq e$,
+energy $e$ is not minimal and will be filtered out. If $e = e'$, the thread
+index is used as a tie breaker to avoid any duplicates.
+
+Theoretically only half of the comparisons could be performed by pruning symmetric
+pairs (i.e.\ compare only $e_1$ with $e_2$, not also $e_2$ with $e_1$),
+but this would make the comparison itself more expensive by not only requiring
+the componentwise comparison of $e_1 \leq e_2$, but also $e_1 \geq e_2$.
+Even bigger problems arise when trying to map this approach to the GPU
+execution model:
+A thread would possibly have to write flags for which energies to keep not only
+for its \enquote{own} energy,
+but for any energy it's comparing it with.
+Such cross-thread memory writes make synchronization more difficult.
+Distributing symmetry-reduced comparisons to multiple threads is also
+more complex than each thread just comparing its energy with all others.
+
 \subsection{Defend shader: Intersection}
 
 \section{Data Layout}
-
-\section{Control Flow}
 
 \section{Limitations}
