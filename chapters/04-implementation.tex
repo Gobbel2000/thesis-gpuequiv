@@ -197,7 +197,42 @@ Such cross-thread memory writes make synchronization more difficult.
 Distributing symmetry-reduced comparisons to multiple threads is also
 more complex than each thread just comparing its energy with all others.
 
+
 \subsection{Defend shader: Intersection}
+
+Computing the intersection of upwards-closed sets for processing defend nodes
+is significantly more complex than what was done for attack nodes.
+The idea behind taking the intersection is that we want to find the set of
+energies with which the attacker can win,
+regardless of the choice the defender makes.
+
+If $E_1, E_2 \subseteq \mathbf{En}$ are two sets of minimal energies
+representing the upwards-closed sets $\uparrow E_1$ and $\uparrow E_2$,
+their intersection can be obtained by taking the supremum of all their combinations:
+\begin{equation*}
+    \mathrm{Min} (\uparrow E_1 \cap \uparrow E_2 ) =
+    \mathrm{Min} (\{ \sup(e_1, e_2) \mid e_1 \in E_1,\ e_2 \in E_2 \})
+\end{equation*}
+
+In order to handle multiple sets, we iteratively apply that step,
+minimizing the result each time.
+This approach was proposed in~\cite{brihaye2023multi}.
+Line 14 of Algorithm~\ref{alg:energy_game} thus becomes more explicitly:
+
+\begin{algorithm}[ht]\label{alg:intersection}
+    \DontPrintSemicolon
+    \SetKwData{Intersection}{intersection}
+    \SetKwData{New}{new\_energies}
+
+    $\New = \Updated[g_1]$ for some $g_1 \in \mathrm{Succ}(g)$\;
+    \For{$g' \in \mathrm{Succ}(g) \setminus \{g_1\}$}{
+        $\New = \{\sup(e_1, e_2) \mid e_1 \in \New,\ e_2 \in \Updated[g']\}$\;
+        $\New = \mathrm{Min} (\New)$\;
+    }
+
+    \caption{Intersection of Upwards-Closed Sets}
+\end{algorithm}
+
 
 \section{Data Layout}
 
