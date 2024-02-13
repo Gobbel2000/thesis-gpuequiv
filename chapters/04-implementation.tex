@@ -87,7 +87,7 @@ The following two sections detail how these operations have been implemented to
 efficiently run on a GPU\@.
 
 
-\subsection{Attack shader: Union}
+\subsection{Attack shader: Union}\label{subsec:attack_shader}
 
 In order to calculate the union of the upwards-closed sets,
 we can simply unionize the minimal elements that the sets are represented by:
@@ -219,7 +219,7 @@ minimizing the result each time.
 This approach was proposed in~\cite{brihaye2023multi}.
 Line 14 of Algorithm~\ref{alg:energy_game} thus becomes more explicitly:
 
-\begin{algorithm}[ht]\label{alg:intersection}
+\begin{algorithm}[H]\label{alg:intersection}
     \DontPrintSemicolon
     \SetKwData{Intersection}{intersection}
     \SetKwData{New}{new\_energies}
@@ -233,7 +233,88 @@ Line 14 of Algorithm~\ref{alg:energy_game} thus becomes more explicitly:
     \caption{Intersection of Upwards-Closed Sets}
 \end{algorithm}
 
+% Direct approach
+The algorithm presented in~\cite{bisping2023process} does this a bit
+differently by intersecting all sets at once.
+This requires producing combinations over all sets,
+whose number for a defense node $g \in G_d$ is given as
+$\prod_{g' \in \mathrm{Succ}(g)} |\Energies[g']|$,
+which is exponential in the out-degree of $g$.
+For example, if a defense node had 10 successors with 5 energy tuples each,
+we would have to consider $5^{10} = 9765625$ combinations.
+In such cases the vast majority of these combinations will be superfluous and 
+the number of energy tuples left after minimization is usually in the single
+digits.
+
+The exact number of combinations produced in the iterative approach shown in
+Algorithm~\ref{alg:intersection} cannot easily be predicted as it depends on
+the size of the energies after each minimization step,
+but it should never be significantly higher than the final result.
+Ultimately, this gets rid of the out-degree as an exponential factor in the
+run-time complexity~\cite{brihaye2023multi},
+which helps in ensuring the scalability of the implementation.
+
+% Difficult to predict final and intermediate size: 64 threads/position
+On the other hand, the fact that the number of combinations cannot be predicted
+without essentially running through the entire algorithm,
+also makes it difficult to accurately dispatch the required amount of GPU
+threads.
+So instead of having one thread per combination,
+which would ideally distribute the workload,
+each position is statically allocated one workgroup of 64 threads.
+This means on smaller positions many threads may sit idle,
+while on larger positions the workgroup will have to perform the same
+operations multiple times in a loop to cover all combinations.
+
+However one big advantage is also achieved by processing a defense position in
+exactly one workgroup:
+the ability for precise synchronization.
+As touched on in Chapter~\ref{ch:gpu}, %TODO: more precise reference when written
+while inter-workgroup synchronization is not supported by \mbox{WebGPU},
+synchronization within a workgroup can easily be done.
+Synchronization is even required in order to properly implement
+Algorithm~\ref{alg:intersection}, in particular for the minimization step.
+
+\subsubsection{Compacting energies}
+
+While the attack shader~(\ref{subsec:attack_shader}) avoids the need for
+synchronization by only flagging each energy on whether or not it is minimal,
+in this case we need to continue working with the minimal set in the next
+iteration.
+To that end it is necessary to compact the energy list by removing non-minimal
+entries and shifting all others to the left to fill any gaps.
+First, a list of flags for each combination is produced, like in the attack
+shader:
+If $[c_1, c_2, \ldots, c_n]$ is the list of combinations,
+we create the flags $[f_1, \ldots, f_n]$ where $f_i = 1$ if $c_i$ is not minimal
+and should be removed, otherwise $f_i = 0$.
+Next we calculate the prefix sums $[p_1, \ldots, p_n]$ of the flag list,
+which is for each element the sum of all preceding elements:
+$p_i = \sum_{j = 0}^{i - 1} f_j$.
+
+Due to its usefulness, the prefix sum algorithm has been widely studied in
+relation to GPU-programming.
+The implementation used is based on~\cite{Harris2011ParallelPS}.
+Again, while it can be done fairly easily within a workgroup,
+prefix sum for larger arrays across workgroups would require global
+synchronization.
+
+These prefix sums now represent the number of non-minimal gaps to the left of
+each combination.
+Each minimal combination $c_i$ can now be shifted left by $p_i$ steps to index
+$i - p_i$.
+
 
 \section{Data Layout}
 
+% CSR-format for game graph
+% Bit-packed energies and updates (saturate energies at 3)
+% Collecting input data for shader invocation
+
 \section{Limitations}
+
+% Hardware:
+    % Process only as many positions as fits
+    % Maximum graph size
+% What is done outside the shaders and why
+% Attempting to generate the game graph on GPU
