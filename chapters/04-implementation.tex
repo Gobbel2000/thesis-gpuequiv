@@ -14,7 +14,7 @@ but presents essentially the same algorithm structure.
 % First, definitions that are also used outside the algorithm
 \SetKwData{Updated}{updated}
 \SetKwData{Energies}{energies}
-\begin{algorithm}[ht]\label{alg:energy_game}
+\begin{algorithm}[ht]
     \DontPrintSemicolon
     \SetKwData{Start}{start}
     \SetKwData{Visit}{visit}
@@ -54,7 +54,7 @@ but presents essentially the same algorithm structure.
     }
     \Return{\Energies}
 
-    \caption{Parallel Energy Game}
+    \caption{Parallel Energy Game}\label{alg:energy_game}
 \end{algorithm}
 
 The basic structure is as shown in Algorithm~\ref{alg:energy_game}.
@@ -307,7 +307,90 @@ $i - p_i$.
 
 \section{Data Layout}
 
-% CSR-format for game graph
+An efficient implementation of the processes described above requires some
+thought to be put into the data layout,
+especially with the restrictive nature of the GPU architecture.
+The highly parallelized execution model makes dynamic memory allocation very
+unsuitable.
+Instead, all required memory must be allocated before running a shader.
+
+In the case of the defend shader, the exact amount of combinations that will be
+produced and thus the required memory size cannot be predicted in advance.
+To cope with that uncertainty, each position is initially allocated memory for
+64 energy tuples.
+If while executing the shader that turns out to be insufficient,
+the position is processed again later with double the amount memory until it
+succeeds.
+In practice however, 64 energy tuples is almost always enough.
+
+
+\subsection{CSR Graph format}
+
+One major structure is the game graph,
+which is required in the shaders for retrieving the energy updates.
+It is a directed graph with an energy update associated to each edge.
+One option for representing that graph would be an adjacency matrix,
+where for any two positions it is saved if there is an edge between them
+and the energy update for that edge.
+That matrix would require $|G|^2$ entries, and since the game graph is
+relatively sparse, the majority of those entries would be empty.
+A common format for efficiently storing graphs or sparse matrices in general is
+the \emph{compressed sparse row} format (CSR)~\cite{Merrill2015}\cite{Hijma2023}.
+
+The CSR format consists of three flat arrays.
+The array $C$ holds all \emph{column-indices} of non-empty matrix cells in order.
+It can be thought of as the concatenation of all adjacency lists for our graph.
+Another array $R$ holds the \emph{row-offsets}, meaning the positions in array
+$C$ where each row of the matrix starts.
+Additional data for each edge can be stored in another array $W$, which has the
+same length as $C$.
+We use this third array for storing the energy updates.
+
+\begin{figure}[h]
+\begin{center}
+\begin{tikzpicture}[position/.style={circle,draw}]
+    \node[position] (0) {0};
+    \node[position] (1) [right=of 0] {1}
+        edge [<-] node[above] {$u_0$} (0);
+    \node[position] (2) [below=of 0] {2}
+        edge [<-] node[auto] {$u_1$} (0)
+        edge [<-] node[near end,above] {$u_3$} (1);
+    \node[position] (3) [below=of 1] {3}
+        edge [<-] node[near end,above] {$u_2$} (0)
+        edge [->] node[right] (u4) {$u_4$} (1)
+        edge [->] node[auto] {$u_5$} (2);
+    \node[right=6mm of u4] (matrix) {
+        $\begin{bmatrix}
+            - & u_0 & u_1 & u_2 \\
+            - & -   & u_3 & -   \\
+            - & -   & -   & -   \\
+            - & u_4 & u_5 & -
+        \end{bmatrix}$
+    };
+    \node[right=6mm of matrix] {
+        $\begin{aligned}
+            C &= [1, 2, 3, 2, 1, 2]\\
+            R &= [0, 3, 4, 4, 6]\\
+            W &= [u_0, u_1, u_2, u_3, u_4, u_5]
+        \end{aligned}$
+    };
+\end{tikzpicture}
+\end{center}
+\caption{Example graph with adjacency matrix and CSR representation.
+    $u_0, \ldots, u_5 \in \mathbf{Up}$ are the energy updates.
+}%
+\label{fig:csr}
+\end{figure}
+
+The CSR-format is very efficient in terms of memory usage and access,
+but its main drawback is that inserting or deleting edges and nodes is very
+expensive, since it requires shifting large parts of the arrays.
+This is not a problem in our case, since we generate the game graph only once
+in the beginning and then never change it afterwards.
+Even though this format was chosen primarily with regards to the needs
+of the GPU code, it also turned out to be very valuable to store the graph in
+the same format in the host memory of the CPU.\@
+
 % Bit-packed energies and updates (saturate energies at 3)
 % Collecting input data for shader invocation
 
