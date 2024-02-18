@@ -314,14 +314,28 @@ The highly parallelized execution model makes dynamic memory allocation very
 unsuitable.
 Instead, all required memory must be allocated before running a shader.
 
-In the case of the defend shader, the exact amount of combinations that will be
-produced and thus the required memory size cannot be predicted in advance.
-To cope with that uncertainty, each position is initially allocated memory for
-64 energy tuples.
+However in the case of the defend shader,
+the exact amount of combinations that will be produced
+and thus the required memory size cannot be predicted in advance.
+To cope with that uncertainty,
+each position is initially allocated memory for 64 energy tuples.
 If while executing the shader that turns out to be insufficient,
 the position is processed again later with double the amount memory until it
 succeeds.
 In practice however, 64 energy tuples is almost always enough.
+
+Some of the input data for the shaders, such as the game graph,
+remains static during the runtime of the algorithm
+and only has to be sent to the GPU once.
+Other data must be newly copied into GPU memory before every iteration of
+shader calls.
+This includes an array containing all the energies of the successors of
+positions currently in the visit list.
+Additional data structures tell where the entries for each position from the
+visit list begin,
+and which energies belong to what successor.
+The following two sections detail some of the techniques used to efficiently
+store the data in memory.
 
 
 \subsection{CSR Graph format}
@@ -331,10 +345,12 @@ which is required in the shaders for retrieving the energy updates.
 It is a directed graph with an energy update associated to each edge.
 One option for representing that graph would be an adjacency matrix,
 where for any two positions it is saved if there is an edge between them
-and the energy update for that edge.
+along with the energy update for that edge.
 That matrix would require $|G|^2$ entries, and since the game graph is
 relatively sparse, the majority of those entries would be empty.
-A common format for efficiently storing graphs or sparse matrices in general is
+Such a high memory overhead would not make for a scalable implementation,
+especially since the game graphs can easily get very large.
+A common way of more efficiently storing graphs or sparse matrices in general is
 the \emph{compressed sparse row} format (CSR)~\cite{Merrill2015}\cite{Hijma2023}.
 
 The CSR format consists of three flat arrays.
@@ -345,8 +361,9 @@ $C$ where each row of the matrix starts.
 Additional data for each edge can be stored in another array $W$, which has the
 same length as $C$.
 We use this third array for storing the energy updates.
+Figure~\ref{fig:csr} illustrates this format on a small example graph.
 
-\begin{figure}[h]
+\begin{figure}[ht]
 \begin{center}
 \begin{tikzpicture}[position/.style={circle,draw}]
     \node[position] (0) {0};
@@ -392,7 +409,7 @@ of the GPU code, it also turned out to be very valuable to store the graph in
 the same format in the host memory of the CPU.\@
 
 
-\subsection{Storing Energy Sets}
+\subsection{Storing Energy Sets}\label{subsec:energy_memory}
 
 While running the algorithm, we need to keep track of a set of energy tuples
 for each position in the game graph.
@@ -455,7 +472,7 @@ Table~\ref{tab:update_encoding}.
 \centering
 \caption{Binary encoding of updates. $k$ is the index of this update value in
 the tuple.}\label{tab:update_encoding}
-\begin{tabular}{ r r l }
+\begin{tabular}{ r c l }
     \toprule
     Decimal & Binary & Update \\
     \midrule
@@ -469,10 +486,6 @@ the tuple.}\label{tab:update_encoding}
 \end{tabular}
 \end{table}
 
-
-
-
-% Collecting input data for shader invocation
 
 \section{Limitations}
 
