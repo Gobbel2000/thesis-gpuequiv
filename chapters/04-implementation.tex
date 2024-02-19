@@ -3,7 +3,7 @@
 At the center of this contribution is a parallel GPU-implementation%
 \footnote{The code can be found at \url{https://github.com/Gobbel2000/gpuequiv}}
 of the energy game introduced in Section~\ref{sec:energy_games}.
-Given a game graph as input, it calcu\-lates for each position the energy budgets
+Given a game graph as input, it cal\-cu\-lates for each position the energy budgets
 required for the attacker, starting at the current position, to win the game.
 This algorithm was described in~\cite{bisping2023process} as part of the
 spectroscopy algorithm, as well as in~\cite{brihaye2023multi} by T. Brihaye and
@@ -184,6 +184,8 @@ If the thread for energy $e$ encounters an energy $e'$ with $e' \leq e$,
 energy $e$ is not minimal and will be filtered out. If $e = e'$, the thread
 index is used as a tie breaker to avoid any duplicates.
 
+%TODO: Code example: Minimizing energies
+
 Theoretically only half of the comparisons could be performed by pruning symmetric
 pairs (i.e.\ compare only $e_1$ with $e_2$, not also $e_2$ with $e_1$),
 but this would make the comparison itself more expensive by not only requiring
@@ -351,7 +353,7 @@ relatively sparse, the majority of those entries would be empty.
 Such a high memory overhead would not make for a scalable implementation,
 especially since the game graphs can easily get very large.
 A common way of more efficiently storing graphs or sparse matrices in general is
-the \emph{compressed sparse row} format (CSR)~\cite{Merrill2015}\cite{Hijma2023}.
+the \emph{compressed sparse row} format (CSR)~\cite{Merrill2015,Hijma2023}.
 
 The CSR format consists of three flat arrays.
 The array $C$ holds all \emph{column-indices} of non-empty matrix cells in order.
@@ -406,7 +408,7 @@ This is not a problem in our case, since we generate the game graph only once
 in the beginning and then never change it afterwards.
 Even though this format was chosen primarily with regards to the needs
 of the GPU code, it also turned out to be very valuable to store the graph in
-the same format in the host memory of the CPU.\@
+the same format in the host memory of the CPU\@.
 
 
 \subsection{Storing Energy Sets}\label{subsec:energy_memory}
@@ -448,7 +450,7 @@ The only integer data types are the signed (\texttt{i32}) and unsigned
 so each energy tuple is stored in a \texttt{u32},
 which could hold tuples with up to 16 values that are capped at 3.
 
-% Maybe code examples out of shader: energy_eq, less_eq, unpack, pack
+%TODO: Maybe code examples out of shader: energy_eq, less_eq, unpack, pack
 
 Similarly, update tuples $(u_1, \ldots, u_6) \in \mathbf{Up}_6$
 for the spectroscopy algorithm can also be packed into a single \texttt{u32}.
@@ -486,11 +488,85 @@ the tuple.}\label{tab:update_encoding}
 \end{tabular}
 \end{table}
 
+%TODO: Note about support for other energy configurations
+
 
 \section{Limitations}
 
-% Hardware:
-    % Process only as many positions as fits
-    % Maximum graph size
-% What is done outside the shaders and why
-% Attempting to generate the game graph on GPU
+The high complexity of the spectroscopy algorithm,
+both in runtime and memory usage,
+stems from having to handle the energy sets
+and also just the sheer size of the game graph,
+which is usually significantly larger than the underlying transition system.
+The shaders take care of updating and combining energy sets,
+which makes up the \enquote{innermost loop} of the algorithm,
+in a highly parallelized fashion. 
+But a fair amount of work still has to be done
+outside of that by the CPU,
+which could not be efficiently parallelized for various reasons.
+
+Ideally, most of the data needed during the algorithm would stay on the GPU,
+so that less data needs to be copied between GPU and CPU memory.
+But currently, the energy sets for each position reside in CPU memory.
+Only the energies needed in each iteration are sent over to the GPU,
+and the resulting energy sets are then read back and saved.
+Keeping the energy sets in GPU memory instead would require some sort of
+dynamic memory allocation,
+since the size of the energy sets can grow almost arbitrarily
+and the order in which energy sets are changed depends on the structure of the
+graph.
+There exist some approaches to handle dynamic data like that on a GPU,
+for example the \emph{Hornet} data structure by
+F. Busato et al.~\cite{Busato2018}.
+But its high design complexity puts that out of scope for this work.
+
+Due to the size of the game graph, the process of generating it based on an
+input LTS is also a tempting point for optimization.
+But for similar reasons, this process had to be fully done on the CPU\@.
+The generated graph is again a highly irregular data structure and
+even parallelizing only the most critical parts couldn't achieve a speedup.
+The fact that the positions themselves contain arbitrarily-sized sets of
+processes doesn't help either.
+In a test of only generating a large number defense positions,
+the shader took noticeably more time than a pure CPU-implementation of the same
+process.
+
+\subsection{Hardware limits}
+
+Even though modern graphics cards can achieve truly incredible degrees of
+parallelization,
+there are still some hardware limits that we need to consider.
+We cannot spawn arbitrarily many threads at once.
+Most current GPUs have a limit of 65535 workgroups.
+With 64 threads per workgroup that amounts to about 4.2 million threads,
+which is the limit of what can be scheduled at once, the driver will most
+likely not execute all threads simultaneously.
+
+That means that on very large inputs,
+we may not be able to process the entire visit list in a single shader call.
+Instead, only part of the visit may be processed at once,
+taking into account the thread limit as well as memory usage.
+The algorithm is still correct,
+even if only some subset of the visit list is processed.
+That is because the outcome of processing a position is only dependent
+on the energies of its successors.
+Whenever any of its successors gets changed,
+the position is again added to the visit list.
+Processing positions in a different order may therefore cause some of them
+to be processed more often,
+but the final result will not be affected.
+
+Memory availability is another limiting factor.
+The larger transition systems from the VLTS benchmarking suite~\cite{vlts}
+caused the game graph generation to run out of memory
+on a system with 32GB RAM\@.
+But even if CPU and GPU both had sufficient memory,
+in many situations the size of a single GPU buffer allocation
+is limited to $2^{31} - 1 = 2\,147\,483\,647$ bytes,
+the maximum range of a signed 32-bit integer.
+The largest allocation is required for the game graph,
+where the energy updates require 4 bytes per edge.
+This limits the size of the game graph to
+$2^{29} - 1 = 536\,870\,911$ edges.
+Based on the benchmarks shown in Chapter~\ref{ch:benchmarks},
+processing such a maximally-sized graph would probably take around 4 minutes.
