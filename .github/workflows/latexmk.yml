@@ -14,7 +14,58 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Install LaTeX
-        run: sudo apt-get install --no-install-recommends texlive-full latexmk
+        run: |
+          sudo apt-get update
+          # Dependencies of `texlive-full`, without docs and without all language packages
+          sudo apt-get install --no-install-recommends \
+            asymptote \
+            biber \
+            chktex \
+            cm-super \
+            context \
+            dvidvi \
+            dvipng \
+            feynmf \
+            fragmaster \
+            lacheck \
+            latex-cjk-all \
+            latexdiff \
+            latexmk \
+            lcdf-typetools \
+            lmodern \
+            prerex \
+            psutils \
+            purifyeps \
+            t1utils \
+            tex-gyre \
+            texinfo \
+            texlive-base \
+            texlive-bibtex-extra \
+            texlive-binaries \
+            texlive-extra-utils \
+            texlive-font-utils \
+            texlive-fonts-extra \
+            texlive-fonts-extra-links \
+            texlive-fonts-recommended \
+            texlive-formats-extra \
+            texlive-games \
+            texlive-humanities \
+            texlive-lang-english \
+            texlive-lang-german \
+            texlive-latex-base \
+            texlive-latex-extra \
+            texlive-latex-recommended \
+            texlive-luatex \
+            texlive-metapost \
+            texlive-music \
+            texlive-pictures \
+            texlive-plain-generic \
+            texlive-pstricks \
+            texlive-publishers \
+            texlive-science \
+            texlive-xetex \
+            tipa \
+            vprerex
       - name: Compile
         run: latexmk -pdf -file-line-error -halt-on-error -interaction=nonstopmode
       - name: Create Tag name
