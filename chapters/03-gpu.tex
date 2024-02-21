@@ -65,3 +65,32 @@ The Firefox browser even uses wgpu itself to implement WebGPU\@.
 
 
 \section{Parallel Computing Model of a GPU}
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[scale=0.6,thick]
+    \foreach \x/\num in {0/-1, 1.2/3, 2.4/2, 3.6/-7, 4.8/-4, 6/7, 7.2/0, 8.4/7}
+    {
+        \draw (\x, 0) node {\num} +(-.6, -.5) rectangle ++(.6, .5);
+        \ifnum \num > 0
+            \draw (\x, -1.5) +(-.6, -.5) rectangle ++(.6, .5);
+            \draw[fill=blue!20] (\x, -3) +(-.6, -.5) rectangle ++(.6, .5);
+        \else
+            \draw[fill=blue!20] (\x, -1.5) +(-.6, -.5) rectangle ++(.6, .5);
+            \draw (\x, -3) +(-.6, -.5) rectangle ++(.6, .5);
+        \fi
+        \draw (\x, -4.5) +(-.6, -.5) rectangle ++(.6, .5);
+        \draw[->] (\x, -0.5) -- (\x, -1);
+        \draw[->] (\x, -2) -- (\x, -2.5);
+        \draw[->] (\x, -3.5) -- (\x, -4);
+    }
+    \node[anchor=east] at (-0.6, 0)   {\verb|a|};
+    \node[anchor=west] at (-5, -0.75) {\verb|if a > 0|};
+    \node[anchor=west] at (-5, -1.5)  {\verb|  c = a*a+b|};
+    \node[anchor=west] at (-5, -2.25) {\verb|else|};
+    \node[anchor=west] at (-5, -3)    {\verb|  c = a*a-b|};
+\end{tikzpicture}
+\caption{Branch divergence in parallel execution.
+    Shaded boxes indicate idle threads. Adapted from~\cite{Hijma2023}.
+}\label{fig:branching}
+\end{figure}
