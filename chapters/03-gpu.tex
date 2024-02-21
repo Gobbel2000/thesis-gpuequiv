@@ -1,3 +1,67 @@
-\section{Parallel Computing Model of a GPU}
+The core contribution of this work is a GPU-accelerated implementation of the
+spectroscopy algorithm presented in~\cite{bisping2023process},
+using the new WebGPU standard.
+This chapter will give an overview on why WebGPU was chosen and how that
+standard came to be among other GPU-compute frameworks.
+Further we will discuss the GPU programming model,
+how its massively parallelized architecture can be utilized
+and which challenges it raises.
 
-\section{Current state of GPGPU technologies}
+\section{WebGPU and the State of GPU-compute}
+
+As their name suggests, Graphical Processing Units (GPUs) were initially built
+to improve graphical processing capabilities of computer systems,
+serving as \emph{graphics accelerators}.
+At first they included mostly fixed-function hardware to run the usual
+rendering pipeline.
+This required the same calculations to be performed for every object to
+be rendered and every pixel on the screen,
+which was solved by running as much as possible in parallel in order to produce
+fluent frame rates.
+These graphics accelerators enabled real-time rendering performance far beyond
+what is possible on a general-purpose CPU,
+which is why their development was largely driven by the gaming industry.
+
+But already early on people recognized the potential of using the parallel
+GPU architecture not just for graphics rendering,
+but for any kind of general-purpose computing that requires performing the same
+instructions on a large amount of data.
+GPUs gradually moved away from the fixed-function design and gained more
+fine-grained programmability.
+Along with that, specific programming environments were
+developed to provide an easier interface for writing GPU compute programs.
+Nvidia has long dominated the market by investing early in its
+proprietary CUDA platform which supports Nvidia hardware only.
+AMD has more recently been working on ROCm for their own GPUs.
+OpenCL was meant to be a more portable alternative.
+
+In another area WebGL was developed to bring GPU support into web browsers.
+This was mainly intended for simpler graphics applications and is based on the
+long-standing OpenGL graphics API\@.
+Because of that, WebGL never really supported general-purpose compute programs.
+Any efforts to improve this situation were abandoned%
+\footnote{\url{https://registry.khronos.org/webgl/specs/latest/2.0-compute/}}
+in favor of a new browser API\@: WebGPU\@.
+Instead of OpenGL, WebGPU is based on more advanced graphics APIs
+that expose modern GPU features:
+Vulkan for Linux and Windows, DX12 for Windows and Metal for Apple.
+General-purpose compute is one of the express features for WebGPU,
+thus providing a GPU-programming API that is not only fully
+platform-independent, but will even be able to run in any web browser.
+However, as of the time of writing, the WebGPU specification is still in
+development and full browser support is not yet available%
+\footnote{\url{https://github.com/gpuweb/gpuweb/wiki/Implementation-Status}}.
+
+For the GPU-code, this work uses \emph{wgpu}, an implementation of the WebGPU
+standard written in the Rust programming language.
+Applications using wgpu can both run natively, directly interfacing with the
+operating system's graphics API,
+or within a webpage through WebAssembly%
+\footnote{WebAssembly is a sort of machine code format that many programming
+languages, including Rust, can be compiled into
+and then be executed by a web page.},
+interfacing with the browser's WebGPU interface.
+The Firefox browser even uses wgpu itself to implement WebGPU\@.
+
+
+\section{Parallel Computing Model of a GPU}
