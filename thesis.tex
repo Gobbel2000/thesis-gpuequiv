@@ -11,6 +11,7 @@
 \usepackage{amssymb}
 \usepackage{amsthm}
 \usepackage[ruled,linesnumbered]{algorithm2e}
+\usepackage{microtype}
 
 \usepackage{hyperref}
 \hypersetup{
@@ -23,6 +24,9 @@
 
 \usepackage{tikz}
 \usetikzlibrary{positioning}
+
+\usepackage[style=numeric,urldate=ymd]{biblatex}
+\addbibresource{bibliography.bib}
 
 % Vertically centered vdots, taken from:
 % https://tex.stackexchange.com/questions/112204/how-to-vertically-center-the-vdots-in-this-node
@@ -72,7 +76,6 @@
 \chapter{Conclusion}
 \input{chapters/06-conclusion}
 
-\bibliographystyle{ieeetr}
-\bibliography{bibliography}
+\printbibliography
 
 \end{document}
