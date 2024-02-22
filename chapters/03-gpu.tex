@@ -64,7 +64,49 @@ interfacing with the browser's WebGPU interface.
 The Firefox browser even uses wgpu itself to implement WebGPU\@.
 
 
-\section{Parallel Computing Model of a GPU}
+\section{Parallel Computing Model of a GPU}\label{sec:gpu_model}
+
+A GPU can run large amounts, often thousands of threads in parallel,
+but that comes at the cost of a lot of the functionality
+that a general-purpose CPU offers.
+Therefore it has to run alongside a host CPU which delegates only some
+workloads to the GPU, which benefit from high parallelization.
+Aside from the multi-lane architecture, another important distinction lies in
+the memory organization:
+by foregoing the hierarchical memory caches found on CPUs,
+memory access on GPUs is more optimized for throughput rather than
+latency~\cite{Patterson2016}.
+
+Following their origin from computer graphics, any kind program for a GPU is
+called a \emph{shader}, although even within the rendering pipeline, shaders
+are used for far more than just shading the image.
+In the world of GPU-compute, the term \emph{kernel} is also frequently instead
+of \emph{shader}.
+Shaders are written in specific shader languages,
+in our case that is the WebGPU Shading Language (WGSL),
+which was newly introduced with WebGPU\@.
+A single shader is executed by a configurable amount of GPU threads,
+whereas each thread can run slightly differently based on its thread index,
+which is available as a variable in the shader code.
+
+% Threads, Workgroups, Branching
+Threads are organized into \emph{workgroups},
+sometimes also called \emph{thread-blocks}.
+The size of a workgroup is configurable,
+but typically set to 64 threads.
+This is relevant,
+because threads within a workgroup are tightly couple at the hardware level.
+They execute the same instructions in lock-step,
+which means if one thread should perform a different calculation than another
+thread in the same workgroup,
+the other thread has to remain idle while the first runs through its
+instructions.
+This effect, illustrated in Figure~\ref{fig:branching}, is called
+\emph{branch-divergence}.
+Due to this, branches in shader-code,
+for example from if-statements or loops,
+should be handled with care and, if possible, avoided~\cite{Hijma2023}.
+
 
 \begin{figure}[ht]
 \centering
@@ -94,3 +136,26 @@ The Firefox browser even uses wgpu itself to implement WebGPU\@.
     Shaded boxes indicate idle threads. Adapted from~\cite{Hijma2023}.
 }\label{fig:branching}
 \end{figure}
+
+A workgroup can also have shared memory,
+in addition to the global memory buffers that are accessible by all workgroups
+of a shader invocation.
+Whenever data is shared between threads,
+it is important to understand how much synchronization is required,
+because the memory model actually makes very few guarantees about the ordering
+of memory operations.
+Workgroups can be executed with any amount of parallelization and in any order.
+Even synchronization within a workgroup is not guaranteed,
+but can be enforced with special synchronization barriers.
+These barriers have to be passed by all threads of a workgroup simultaneously,
+guaranteeing the order of memory operations between threads~\cite{wgsl_spec}.
+
+Many algorithms would however benefit greatly from the ability for
+synchroniziation between workgroups.
+Newer GPUs do include architectural changes that allow for some amount of
+inter-workgroup synchronization~\cite{Hijma2023}.
+However this feature is not available in WebGPU due to a limitation within
+Metal, which also prohibits using it on other platforms in the spirit of
+portability~\cite{Levien2021}.
+The topic of synchronization is further discussed in
+Section~\ref{subsec:defend_shader} in the context of this work.

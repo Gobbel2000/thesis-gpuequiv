@@ -200,7 +200,7 @@ Distributing symmetry-reduced comparisons to multiple threads is also
 more complex than each thread just comparing its energy with all others.
 
 
-\subsection{Defend shader: Intersection}
+\subsection{Defend shader: Intersection}\label{subsec:defend_shader}
 
 Computing the intersection of upwards-closed sets for processing defend nodes
 is significantly more complex than what was done for attack nodes.
@@ -271,7 +271,7 @@ operations multiple times in a loop to cover all combinations.
 However one big advantage is also achieved by processing a defense position in
 exactly one workgroup:
 the ability for precise synchronization.
-As touched on in Chapter~\ref{ch:gpu}, %TODO: more precise reference when written
+As touched on in Section~\ref{sec:gpu_model},
 while inter-workgroup synchronization is not supported by \mbox{WebGPU},
 synchronization within a workgroup can easily be done.
 Synchronization is even required in order to properly implement
@@ -516,8 +516,7 @@ since the size of the energy sets can grow almost arbitrarily
 and the order in which energy sets are changed depends on the structure of the
 graph.
 There exist some approaches to handle dynamic data like that on a GPU,
-for example the \emph{Hornet} data structure by
-F. Busato et al.~\cite{Busato2018}.
+for example the \emph{Hornet} data structure by \textcite{Busato2018}.
 But its high design complexity puts that out of scope for this work.
 
 Due to the size of the game graph, the process of generating it based on an
@@ -562,7 +561,7 @@ caused the game graph generation to run out of memory
 on a system with 32GB RAM\@.
 But even if CPU and GPU both had sufficient memory,
 in many situations the size of a single GPU buffer allocation
-is limited to $2^{31} - 1 = 2\,147\,483\,647$ bytes,
+is limited to $2^{31} - 1$ bytes or 2GiB,
 the maximum range of a signed 32-bit integer.
 The largest allocation is required for the game graph,
 where the energy updates require 4 bytes per edge.
