@@ -1,0 +1,65 @@
+\documentclass{beamer}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[ngerman]{babel}
+\usepackage{tikz}
+\usepackage{csquotes}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+
+\usetheme{CambridgeUS}
+% Recangles for lists and enumerations
+\useinnertheme{rectangles}
+% TUB color
+\definecolor{darkred}{RGB}{197,14,31}
+% For numbered figures
+\setbeamertemplate{caption}[numbered]
+
+\title[gpuequiv]{Accelerating Process Equivalence Energy Games using WebGPU}
+\subtitle{Bachelorarbeit im Fachbereich MTV}
+\author{Gabriel Vogel}
+\titlegraphic{
+    \begin{tikzpicture}[overlay,remember picture]
+        \node[left=0.2cm] at (current page.29){
+            \includegraphics[width=2.5cm]{images/TU_Logo_lang_RGB_rot.pdf}
+        };
+    \end{tikzpicture}
+}
+\date{\today}
+
+\usepackage[style=authortitle]{biblatex}
+\addbibresource{../bibliography.bib}
+\renewcommand*{\bibfont}{\normalfont\scriptsize}
+\setbeamerfont{footnote}{size=\scriptsize}
+
+\begin{document}
+
+% Title page
+\begin{frame}
+    \titlepage
+\end{frame}
+
+\begin{frame}{Übersicht}
+    \tableofcontents
+\end{frame}
+
+% Overview at the start of each section
+\AtBeginSection[ ]
+{
+    \begin{frame}{Übersicht}
+        \tableofcontents[currentsection]
+    \end{frame}
+}
+
+\section*{Quellen}
+
+%-------------------------------------------------------------------------------
+\begin{frame}[allowframebreaks]{Quellen}
+    \printbibliography
+\end{frame}
+
+\end{document}

@@ -1,4 +1,7 @@
 *.pdf
+# Allow PDFs inside `images` directories anywhere
+!**/images/*.pdf
+
 *.aux
 *.bbl
 *.blg
@@ -11,3 +14,5 @@
 *.synctex.gz
 *.run.xml
 *.bcf
+*.nav
+*.snm
