@@ -4,6 +4,7 @@
 \usepackage[utf8]{inputenc}
 \usepackage[ngerman]{babel}
 \usepackage{tikz}
+\usetikzlibrary{positioning}
 \usepackage{csquotes}
 \usepackage{booktabs}
 \usepackage{hyperref}
@@ -36,6 +37,26 @@
 \renewcommand*{\bibfont}{\normalfont\scriptsize}
 \setbeamerfont{footnote}{size=\scriptsize}
 
+\newcommand{\exampleLTS}{
+\begin{tikzpicture}[p/.style={circle,draw},->]
+    \node[p] (0) {0}
+        child {node[p] {1}
+            child {node[p] {2} edge from parent node[left] {b}}
+            child {node[p] {3} edge from parent node[right] {c}}
+            edge from parent node[left] {a}
+        };
+    \node[p] (4) [right=25mm of 0] {4}
+        child {node[p] {5}
+            child {node[p] {7} edge from parent node[left] {b}}
+            edge from parent node[left] {a}
+        }
+        child {node[p] {6}
+            child {node[p] {8} edge from parent node[right] {c}}
+            edge from parent node[right] {a}
+        };
+\end{tikzpicture}
+}
+
 \begin{document}
 
 % Title page
@@ -43,7 +64,7 @@
     \titlepage
 \end{frame}
 
-\begin{frame}{Übersicht}
+\begin{frame}{Gliederung}
     \tableofcontents
 \end{frame}
 
@@ -54,6 +75,197 @@
         \tableofcontents[currentsection]
     \end{frame}
 }
+
+\section{GPU-Programmierung}
+
+%-------------------------------------------------------------------------------
+\begin{frame}{GPU vs. CPU}
+    Graphical Processing Unit:
+    \begin{itemize}
+        \item Ursprünglich reiner Grafikbeschleuniger für übliche
+            Rendering-Pipeline
+        \item Führt die gleichen Berechnungen für jeden Bildschirmpixel aus
+        \item Nur zusätzliche Hardware, gesteurt von CPU
+    \end{itemize}
+\end{frame}
+
+%-------------------------------------------------------------------------------
+\begin{frame}{GPU-Compute}
+    GPU bietet auch Möglichkeit für allgemeinere Berechnungen
+
+    Plattformen:
+    \begin{itemize}
+        \item CUDA (nur Nvidia)
+        \item ROCm (nur AMD)
+        \item OpenCL
+    \end{itemize}
+\end{frame}
+
+%-------------------------------------------------------------------------------
+\begin{frame}{WebGPU}
+    \begin{itemize}
+        \item Läuft im Browser, daher maximal Plattform-unabhängig
+        \item Vorgänger: WebGL
+        \item Hier über Rust-Library \texttt{wgpu},
+            entweder nativ oder über WebAssembly
+    \end{itemize}
+
+
+
+\end{frame}
+
+%-------------------------------------------------------------------------------
+\begin{frame}{Paralleles Ausführungsmodell}
+\begin{center}
+Branch Divergence~\autocite[Grafik:][]{Hijma2023}
+\vspace{1em}
+
+\begin{tikzpicture}[scale=0.6,thick]
+    \foreach \x/\num in {0/-1, 1.2/3, 2.4/2, 3.6/-7, 4.8/-4, 6/7, 7.2/0, 8.4/7}
+    {
+        \draw (\x, 0) node {\num} +(-.6, -.5) rectangle ++(.6, .5);
+        \ifnum \num > 0
+            \draw (\x, -1.5) +(-.6, -.5) rectangle ++(.6, .5);
+            \draw[fill=blue!20] (\x, -3) +(-.6, -.5) rectangle ++(.6, .5);
+        \else
+            \draw[fill=blue!20] (\x, -1.5) +(-.6, -.5) rectangle ++(.6, .5);
+            \draw (\x, -3) +(-.6, -.5) rectangle ++(.6, .5);
+        \fi
+        \draw (\x, -4.5) +(-.6, -.5) rectangle ++(.6, .5);
+        \draw[->] (\x, -0.5) -- (\x, -1);
+        \draw[->] (\x, -2) -- (\x, -2.5);
+        \draw[->] (\x, -3.5) -- (\x, -4);
+    }
+    \node[anchor=east] at (-0.6, 0)   {\texttt{a}};
+    \node[anchor=west] at (-5, -0.75) {\texttt{if a > 0}};
+    \node[anchor=west] at (-5, -1.5)  {\texttt{~~c = a*a+b}};
+    \node[anchor=west] at (-5, -2.25) {\texttt{else}};
+    \node[anchor=west] at (-5, -3)    {\texttt{~~c = a*a-b}};
+\end{tikzpicture}
+\end{center}
+
+\end{frame}
+
+\section{Spektroskopie-Algorithmus}
+
+%-------------------------------------------------------------------------------
+\begin{frame}{Äquivalenzen finden}
+    Welche Äquivalenzen gelten zwischen Prozessen 0 und 4 in diesem LTS\@?
+
+    \begin{center}
+    \exampleLTS
+    \end{center}
+\end{frame}
+
+%-------------------------------------------------------------------------------
+\begin{frame}{Das Spektrum}
+    \begin{center}
+        \includegraphics[height=200pt]{images/spectrum.pdf}
+    \end{center}
+    \tiny{Grafik: \textcite{bisping2023process}}
+\end{frame}
+
+%-------------------------------------------------------------------------------
+\begin{frame}{Das Spektrum}
+    \begin{center}
+    Welche Kosten sind benötigt, um Prozesse 0 und 4 zu unterscheiden?
+
+    $=$
+
+    Welche Äquivalenzen gelten zwischen Prozessen 0 und 4?
+    \vspace{1em}
+
+    \exampleLTS
+    \end{center}
+\end{frame}
+
+%-------------------------------------------------------------------------------
+\begin{frame}{Energiespiele~\autocite{bisping2023process,brihaye2023multi}}
+    \begin{columns}
+    \begin{column}{0.4\textwidth}
+        \begin{itemize}
+            \item Reachability Game
+                \uncover<2->{mit Kosten (Energien) auf den Kanten}
+            \uncover<3->{\item Energien können mehrdimensional sein}
+            \uncover<4->{\item Kosten erweitert durch $\mathtt{min}$-updates}
+        \end{itemize}
+    \end{column}
+    \begin{column}{0.51\textwidth}
+        \hspace{\fill}
+        \begin{tikzpicture}
+            [atk/.style={rectangle,draw,text=red,inner sep=2mm},
+             def/.style={circle,draw,text=blue,inner sep=1mm},
+             energy/.style={gray},
+             ->,
+             level distance=20mm,
+             level 1/.style={sibling distance=30mm},
+             level 2/.style={sibling distance=12mm}]
+            \node[atk] (a0) {$a_0$}
+                child {node[atk] (a1) {$a_1$}
+                    child {node[def] (d0) {$d_0$} edge from parent node[left] {
+                            \only<2>{1}%
+                            \only<3->{$1, 0, 0$}%
+                    }}
+                    child {node[def] (d1) {$d_1$} edge from parent node[right=0mm] {
+                            \only<2>{2}%
+                            \only<3->{$0, 1, 0$}%
+                    }}
+                    edge from parent node[left] {
+                        \only<2>{1}%
+                        \only<3>{$0, 0, 1$}%
+                        \only<4->{$0, 0, \mathtt{min}_{\{2, 3\}}$}%
+                    }
+                }
+                child {node[def] (d2) {$d_2$}
+                    child {node[def] (d3) {$d_3$} edge from parent node[left] {
+                        \only<2>{5}%
+                        \only<3->{$0, 1$}%
+                    }}
+                    child {node[atk] (a2) {$a_2$} edge from parent node[left] {
+                        \only<2->{1}%
+                    }}
+                    % Don't create an edge here, instead draw both edges with bends below
+                    child {node[atk] (a3) {$a_3$} edge from parent[draw=none]}
+                    edge from parent node[right] {
+                        \only<2>{2}%
+                        \only<3>{$1, 0, 1$}%
+                        \only<4->{$\mathtt{min}_{\{1, 2\}}, 0, 1$}%
+                    }
+                };
+            \draw[->,bend right=18] (d2) to node[right] {\only<2->{0}} (a3);
+            \draw[->,bend right=18] (a3) to node[right] {\only<2->{1}} (d2);
+            \uncover<5->{
+                \node[energy,below=0 of d0] {$0, 0, 0$};
+                \node[energy,below=0 of d1] {$0, 0, 0$};
+                \node[energy,below=0 of d3] {$0, 0, 0$};
+            }
+            \uncover<6->{
+                \node[energy,left=0 of a1,align=right] {$1, 0, 0$\\$0, 1, 0$};
+            }
+            \uncover<7->{
+                \node[energy,left=0 of d2] {$\emptyset$};
+                \node[energy,left=0 of a0,align=right] {$1, 0, 0$\\$0, 1, 1$};
+            }
+        \end{tikzpicture}
+    \end{column}
+    \end{columns}
+\end{frame}
+
+
+\section{Implementierung}
+
+%-------------------------------------------------------------------------------
+\begin{frame}{Angriffspositionen}
+
+\end{frame}
+
+%-------------------------------------------------------------------------------
+\begin{frame}{Verteidigungspositionen}
+\end{frame}
+
+\subsection{Benchmarks}
+
+\section{Vorstellung des Programms}
 
 \section*{Quellen}
 
