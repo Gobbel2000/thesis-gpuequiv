@@ -8,6 +8,7 @@
 \usepackage{csquotes}
 \usepackage{booktabs}
 \usepackage{hyperref}
+\usepackage{algorithm2e}
 \usepackage{amsmath}
 \usepackage{amssymb}
 
@@ -36,6 +37,21 @@
 \addbibresource{../bibliography.bib}
 \renewcommand*{\bibfont}{\normalfont\scriptsize}
 \setbeamerfont{footnote}{size=\scriptsize}
+
+% Workaround for missing \mathbf font:
+% https://github.com/josephwright/beamer/issues/630
+\DeclareFontShape{T1}{cmss}{b}{n}{<->ssub * cmss/bx/n}{}
+
+% Vertically centered vdots, taken from:
+% https://tex.stackexchange.com/questions/112204/how-to-vertically-center-the-vdots-in-this-node
+\makeatletter
+\DeclareRobustCommand{\rvdots}{%
+  \vbox{
+    \baselineskip4\p@\lineskiplimit\z@
+    \kern-\p@
+    \hbox{.}\hbox{.}\hbox{.}
+  }}
+\makeatother
 
 \newcommand{\exampleLTS}{
 \begin{tikzpicture}[p/.style={circle,draw},->]
@@ -203,37 +219,37 @@ Branch Divergence~\autocite[Grafik:][]{Hijma2023}
             \node[atk] (a0) {$a_0$}
                 child {node[atk] (a1) {$a_1$}
                     child {node[def] (d0) {$d_0$} edge from parent node[left] {
-                            \only<2>{1}%
-                            \only<3->{$1, 0, 0$}%
+                            \only<2>{$-1$}%
+                            \only<3->{$-1, 0$}%
                     }}
                     child {node[def] (d1) {$d_1$} edge from parent node[right=0mm] {
-                            \only<2>{2}%
-                            \only<3->{$0, 1, 0$}%
+                            \only<2>{$-2$}%
+                            \only<3->{$0, -1$}%
                     }}
                     edge from parent node[left] {
-                        \only<2>{1}%
-                        \only<3>{$0, 0, 1$}%
+                        \only<2>{$-1$}%
+                        \only<3>{$0, 0, -1$}%
                         \only<4->{$0, 0, \mathtt{min}_{\{2, 3\}}$}%
                     }
                 }
                 child {node[def] (d2) {$d_2$}
-                    child {node[def] (d3) {$d_3$} edge from parent node[left] {
-                        \only<2>{5}%
-                        \only<3->{$0, 1$}%
+                    child {node[def] (d3) {$d_3$} edge from parent node[left,near start] {
+                        \only<2>{$-5$}%
+                        \only<3->{$0, -1$}%
                     }}
-                    child {node[atk] (a2) {$a_2$} edge from parent node[left] {
-                        \only<2->{1}%
+                    child {node[atk] (a2) {$a_2$} edge from parent node[left,inner sep=0] {
+                        \only<2->{$-1$}%
                     }}
                     % Don't create an edge here, instead draw both edges with bends below
                     child {node[atk] (a3) {$a_3$} edge from parent[draw=none]}
                     edge from parent node[right] {
-                        \only<2>{2}%
-                        \only<3>{$1, 0, 1$}%
-                        \only<4->{$\mathtt{min}_{\{1, 2\}}, 0, 1$}%
+                        \only<2>{$-2$}%
+                        \only<3>{$-1, 0, 0$}%
+                        \only<4->{$\mathtt{min}_{\{1, 2\}}, 0, 0$}%
                     }
                 };
-            \draw[->,bend right=18] (d2) to node[right] {\only<2->{0}} (a3);
-            \draw[->,bend right=18] (a3) to node[right] {\only<2->{1}} (d2);
+            \draw[->,bend right=18] (d2) to node[right] {\only<2->{$0$}} (a3);
+            \draw[->,bend right=18] (a3) to node[right] {\only<2->{$-1$}} (d2);
             \uncover<5->{
                 \node[energy,below=0 of d0] {$0, 0, 0$};
                 \node[energy,below=0 of d1] {$0, 0, 0$};
@@ -251,26 +267,147 @@ Branch Divergence~\autocite[Grafik:][]{Hijma2023}
     \end{columns}
 \end{frame}
 
+%-------------------------------------------------------------------------------
+\begin{frame}{Energiemengen}
+Wir suchen die Menge der Energien, mit denen der Angreifer das Spiel
+gewinnt.
+
+\begin{columns}
+\begin{column}{0.7\textwidth}
+    \begin{block}{Energien}
+        $\mathbf{En} = {(\mathbb{N} \cup \{ \infty \})}^6$\\
+        Oberhalb-Menge von $E \subseteq \mathbf{En}$:
+        \[\uparrow E := \{e \in \mathbf{En} \mid \exists a \in E . e \geq a\}\]
+        Minimale Energien~\autocite{bisping2023process}:
+        \[\mathrm{Min} (E) :=
+            \{e \in E \mid \nexists e' \in E . e' \leq e \wedge e' \ne e\}\]
+    \end{block}
+\end{column}
+\end{columns}
+
+\end{frame}
 
 \section{Implementierung}
 
 %-------------------------------------------------------------------------------
 \begin{frame}{Angriffspositionen}
+\[\mathrm{Min} \left( \bigcup_{g' \in \mathrm{Succ}(g)} \uparrow E'_{g'} \right) =
+  \mathrm{Min} \left( \bigcup_{g' \in \mathrm{Succ}(g)}          E'_{g'} \right)\]
+\vspace{1em}
 
+\begin{center}
+\begin{tikzpicture}
+    \node[rectangle,draw] (start_node) {\large{$g$}};
+    \node (successor1) [right=of start_node,label=above:Nachfolger] {$g_1$};
+
+    % Energies of successors
+    \node (energy1_1) [right=of successor1] {$e_{g_1,1}$};
+    \node (energy1_2) [below] at (energy1_1.south) {$e_{g_1,2}$};
+    \node (dots1) [below] at (energy1_2.south) {\rvdots};
+    \node (energy2_1) [below] at (dots1.south) {$e_{g_2,1}$};
+    \node (energy2_2) [below] at (energy2_1.south) {$e_{g_2,2}$};
+    \node (dots2) [below] at (energy2_2.south) {\rvdots};
+
+    \node (successor2) [left=of energy2_1] {$g_2$};
+    \node (dots_successors) at (successor2 |- dots2) {\rvdots};
+
+    % Updated energies
+    \node (updated1_1) [right=of energy1_1] {$e_{g_1,1}'$};
+    \node (updated1_2) [right=of energy1_2] {$e_{g_1,2}'$};
+    \node (udots1) at (updated1_2 |- dots1) {\rvdots};
+    \node (updated2_1) [right=of energy2_1] {$e_{g_2,1}'$};
+    \node (updated2_2) [right=of energy2_2] {$e_{g_2,2}'$};
+    \node (udots2) at (updated2_2 |- dots2) {\rvdots};
+    % Include energies of g itself
+    %\node (energyg_1) [below] at (udots2.south) {$e_{g,1}$};
+    %\node (energyg_2) [below] at (energyg_1.south) {$e_{g,2}$};
+    %\node (udots3) [below] at (energyg_2.south) {\rvdots};
+
+    % Minimized energies
+    \node (minimal1) [right=14mm of udots1.north] {$e_1^*$};
+    \node (minimal2) [below] at (minimal1.south) {$e_2^*$};
+    \node (mdots) [below] at (minimal2.south) {\rvdots};
+
+    \draw[->] (start_node.east) -- (successor1.west);
+    \draw[->] (start_node.east) -- (successor2.west);
+    \draw[->] (successor1) -- (energy1_1.west);
+    \draw[->] (successor1) -- (energy1_2.west);
+    \draw[->] (successor1) -- (energy1_2.west |- dots1);
+    \draw[->] (successor2) -- (energy2_1.west);
+    \draw[->] (successor2) -- (energy2_2.west);
+    \draw[->] (successor2) -- (energy2_2.west |- dots2);
+
+    \draw[->] (energy1_1) -- node (l_update) [above=3mm] {Update} (updated1_1);
+    \draw[->] (energy1_2) -- (updated1_2);
+    \draw[->] (energy1_2.east |- dots1) -- (updated1_2.west |- udots1);
+    \draw[->] (energy2_1) -- (updated2_1);
+    \draw[->] (energy2_2) -- (updated2_2);
+    \draw[->] (energy2_2.east |- dots2) -- (updated2_2.west |- udots2);
+    % Energies from g
+    %\draw[->,shorten >= 4mm] (start_node.south) |-
+    %    node [near end,below] {energies of $g$}
+    %    (energyg_2.west);
+
+    % Diagonal lines suggesting the reduction to minimal energies
+    \draw[thick] (updated1_1.east |- udots2.south) -- (minimal1.west |- mdots.south);
+    \draw[thick] (updated1_1.north east) -- (minimal1.north west);
+    \node (l_minimize) [right=4mm of l_update] {Minimieren};
+\end{tikzpicture}
+\end{center}
 \end{frame}
 
 %-------------------------------------------------------------------------------
 \begin{frame}{Verteidigungspositionen}
+    \[\text{Gesucht:}\quad\mathrm{Min} \left( \bigcap_{g' \in \mathrm{Succ}(g)} \uparrow E'_{g'} \right)\]
+    \pause
+
+    Schnittmenge von zwei Energiemengen:
+    \[\mathrm{Min} (\uparrow E_1 \cap \uparrow E_2 ) =
+      \mathrm{Min} (\{ \sup(e_1, e_2) \mid e_1 \in E_1,\ e_2 \in E_2 \})\]
+    \pause
+
+    Iterative Schnittmenge:~\autocite{brihaye2023multi}
+    \footnotesize
+    \setlength{\algomargin}{3em}
+    \begin{algorithm}[H]
+        \DontPrintSemicolon
+        \SetKwData{Intersection}{intersection}
+        \SetKwData{New}{new\_energies}
+        \SetKwData{Updated}{updated}
+        \SetKwData{Energies}{energies}
+
+        $\New = \Updated[g_1]$ for some $g_1 \in \mathrm{Succ}(g)$\;
+        \For{$g' \in \mathrm{Succ}(g) \setminus \{g_1\}$}{
+            $\New = \{\sup(e_1, e_2) \mid e_1 \in \New,\ e_2 \in \Updated[g']\}$\;
+            $\New = \mathrm{Min} (\New)$\;
+        }
+    \end{algorithm}
 \end{frame}
 
 \subsection{Benchmarks}
 
+%-------------------------------------------------------------------------------
+\begin{frame}{Benchmarks~\autocite{vlts}}
+\end{frame}
+
 \section{Vorstellung des Programms}
+
+%-------------------------------------------------------------------------------
+\begin{frame}{Demo}
+    \begin{columns}
+    \begin{column}{0.46\textwidth}
+        \exampleLTS
+    \end{column}
+    \begin{column}{0.54\textwidth}
+        \includegraphics[width=\textwidth]{images/spectrum.pdf}
+    \end{column}
+    \end{columns}
+\end{frame}
 
 \section*{Quellen}
 
 %-------------------------------------------------------------------------------
-\begin{frame}[allowframebreaks]{Quellen}
+\begin{frame}{Quellen}
     \printbibliography
 \end{frame}
 
