@@ -24,7 +24,7 @@ but presents essentially the same algorithm structure.
     $\Start = \{g \in G_d \mid \mathrm{Succ}(g) = \emptyset\}$\;
     \lFor{$g \in \Start$}{$\Energies[g] = \{\mathbf{0}\}$}
     \lFor{$g \in G \setminus \Start$}{$\Energies[g] = \emptyset$}
-    $\Visit = \{\mathrm{Pred}(g) \mid g \in \Start\}$\;
+    $\Visit = \bigcup_{g \in \Start} \mathrm{Pred}(g)$\;
 
     \BlankLine
     \While{$\Visit \neq \emptyset$}{
@@ -105,25 +105,25 @@ This workflow is sketched out in Figure~\ref{fig:attack}.
 \begin{center}
 \begin{tikzpicture}
     \node[rectangle,draw] (start_node) {\large{$g$}};
-    \node (successor1) [right=of start_node,label=above:successors] {$g_1'$};
+    \node (successor1) [right=of start_node,label=above:successors] {$g_1$};
 
     % Energies of successors
-    \node (energy1_1) [right=of successor1] {$e_{g_1',1}$};
-    \node (energy1_2) [below] at (energy1_1.south) {$e_{g_1',2}$};
+    \node (energy1_1) [right=of successor1] {$e_{g_1,1}$};
+    \node (energy1_2) [below] at (energy1_1.south) {$e_{g_1,2}$};
     \node (dots1) [below] at (energy1_2.south) {\rvdots};
-    \node (energy2_1) [below] at (dots1.south) {$e_{g_2',1}$};
-    \node (energy2_2) [below] at (energy2_1.south) {$e_{g_2',2}$};
+    \node (energy2_1) [below] at (dots1.south) {$e_{g_2,1}$};
+    \node (energy2_2) [below] at (energy2_1.south) {$e_{g_2,2}$};
     \node (dots2) [below] at (energy2_2.south) {\rvdots};
 
-    \node (successor2) [left=of energy2_1] {$g_2'$};
+    \node (successor2) [left=of energy2_1] {$g_2$};
     \node (dots_successors) at (successor2 |- dots2) {\rvdots};
 
     % Updated energies
-    \node (updated1_1) [right=of energy1_1] {$e_{g_1',1}'$};
-    \node (updated1_2) [right=of energy1_2] {$e_{g_1',2}'$};
+    \node (updated1_1) [right=of energy1_1] {$e_{g_1,1}'$};
+    \node (updated1_2) [right=of energy1_2] {$e_{g_1,2}'$};
     \node (udots1) at (updated1_2 |- dots1) {\rvdots};
-    \node (updated2_1) [right=of energy2_1] {$e_{g_2',1}'$};
-    \node (updated2_2) [right=of energy2_2] {$e_{g_2',2}'$};
+    \node (updated2_1) [right=of energy2_1] {$e_{g_2,1}'$};
+    \node (updated2_2) [right=of energy2_2] {$e_{g_2,2}'$};
     \node (udots2) at (updated2_2 |- dots2) {\rvdots};
     % Include energies of g itself
     %\node (energyg_1) [below] at (udots2.south) {$e_{g,1}$};
@@ -243,7 +243,7 @@ whose number for a defense node $g \in G_d$ is given as
 $\prod_{g' \in \mathrm{Succ}(g)} |\Energies[g']|$,
 which is exponential in the out-degree of $g$.
 For example, if a defense node had 10 successors with 5 energy tuples each,
-we would have to consider $5^{10} = 9765625$ combinations.
+we would have to consider $5^{10} = 9\,765\,625$ combinations.
 In such cases the vast majority of these combinations will be superfluous and 
 the number of energy tuples left after minimization is usually in the single
 digits.
