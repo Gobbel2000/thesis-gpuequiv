@@ -9,6 +9,7 @@
 \usepackage{booktabs}
 \usepackage{hyperref}
 \usepackage{algorithm2e}
+\usepackage{siunitx}
 \usepackage{amsmath}
 \usepackage{amssymb}
 
@@ -294,6 +295,7 @@ gewinnt.
 \[\mathrm{Min} \left( \bigcup_{g' \in \mathrm{Succ}(g)} \uparrow E'_{g'} \right) =
   \mathrm{Min} \left( \bigcup_{g' \in \mathrm{Succ}(g)}          E'_{g'} \right)\]
 \vspace{1em}
+\pause
 
 \begin{center}
 \begin{tikzpicture}
@@ -387,7 +389,38 @@ gewinnt.
 \subsection{Benchmarks}
 
 %-------------------------------------------------------------------------------
-\begin{frame}{Benchmarks~\autocite{vlts}}
+\begin{frame}{Benchmarks}
+\centering
+\footnotesize
+\begin{tabular}{@{}l
+                r@{\hskip 6pt}r
+                r@{\hskip 6pt}r
+                S[table-format=3.2]@{\hskip 6pt}
+                S[table-format=1.4]@{}
+                S[table-format=3.4]@{}}
+    \toprule
+    &\multicolumn{2}{c}{Größe LTS}
+    &\multicolumn{2}{c}{Größe Spielgraph}
+    &\multicolumn{3}{c}{Laufzeit (s)} \\
+    \cmidrule(lr){2-3} \cmidrule(lr){4-5} \cmidrule(l){6-8}
+    LTS~\autocite{vlts}
+    &$|P|$ &$\sim_B$
+    &$|G|$ &$|E|$
+    &Scala~\autocite{bisping2023process} &{gpuequiv} &{Graph} \\
+    \midrule
+
+    \texttt{vasy\_0\_1}   &289    &9      &276        &844         &0.02   &0.0045 &0.0001  \\
+    \texttt{vasy\_1\_4}   &1183   &28     &520        &1377        &0.02   &0.0053 &0.0002  \\
+    \texttt{vasy\_5\_9}   &5486   &145    &1859       &3466        &0.06   &0.0051 &0.0007  \\
+    \texttt{vasy\_8\_24}  &8879   &416    &59,761     &147,168     &2.15   &0.046  &0.026   \\
+    \texttt{vasy\_8\_38}  &8921   &219    &7535       &21,643      &0.19   &0.0072 &0.003   \\
+    \texttt{vasy\_10\_56} &10,849 &2112   &1,950,422  &6,064,252   &174.59 &4.047  &1.319   \\
+    \texttt{vasy\_18\_73} &18,746 &4087   &76,010,111 &624,135,160 &{--}   &{--}   &108.872 \\
+    \texttt{vasy\_25\_25} &25,217 &25,217 &0          &0           &0.33   &0.0017 &3.582   \\
+    \texttt{cwi\_1\_2}    &1952   &1132   &8,504,998  &22,708,680  &384.13 &8.536  &5.197   \\
+    \texttt{cwi\_3\_14}   &3996   &62     &11,094     &24,190      &0.3    &0.024  &0.003   \\
+    \bottomrule
+\end{tabular}
 \end{frame}
 
 \section{Vorstellung des Programms}
