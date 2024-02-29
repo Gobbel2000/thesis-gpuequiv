@@ -14,6 +14,26 @@
 \usepackage[ruled,linesnumbered]{algorithm2e}
 \usepackage{microtype}
 
+\usepackage{listings}
+\lstdefinestyle{mystyle}{
+    basicstyle=\ttfamily\color{black!60},
+    backgroundcolor=\color{black!5},
+    commentstyle=\itshape\color{cyan},
+    keywordstyle=\color{purple},
+    keywordstyle=[2]\color{orange},
+    identifierstyle=\color{black},
+    numberstyle=\footnotesize\color{black},
+    numbers=left,
+    numbersep=4pt,
+    columns=fixed,
+}
+\lstset{style=mystyle}
+% Minimal support for WGSL, whatever is needed, based on C syntax
+\lstdefinelanguage{WGSL}[ANSI]{C}%
+    {morekeywords={let,var,fn},%
+     morekeywords=[2]{u32,i32,bool},% Types
+}
+
 \usepackage{hyperref}
 \hypersetup{
     colorlinks=true,

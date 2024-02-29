@@ -175,16 +175,43 @@ The shader then has two tasks:
 \end{enumerate}
 
 The update step basically follows the definition of $\mathsf{upd}^{-1}$.
-Minimizing the energies is done by comparing all energy tuples with each other.
+Minimizing the energies is done by comparing all energy tuples with each other,
+requiring a quadratic runtime:
 Let $n = \sum_{g' \in \mathrm{Succ}(g)} | \Energies[g'] |$ be the total number
 of energies considered for a starting node $g$.
 We do $n^2$ comparisons in total, where each thread checks all $n$
 energies to find out if this thread's energy is part of the minimal set.
-If the thread for energy $e$ encounters an energy $e'$ with $e' \leq e$,
-energy $e$ is not minimal and will be filtered out. If $e = e'$, the thread
+If the thread for energy $e$ encounters an energy $e_2$ with $e_2 \leq e$,
+energy $e$ is not minimal and will be filtered out. If $e = e_2$, the thread
 index is used as a tie breaker to avoid any duplicates.
+The shader code performing this minimization step is shown in
+Listing~\ref{lst:minimize}.
 
-%TODO: Code example: Minimizing energies
+\begin{lstlisting}[language=WGSL,float,
+    caption={WGSL Shader Code for minimizing energies.
+        \texttt{i} is the thread ID
+        and determines the energy that this thread processes.
+        It is compared against energies at index \texttt{j},
+        which loops through the range of energies to minimize,
+        denoted by \texttt{e\_start} and \texttt{e\_end}.
+        The function \texttt{less\_eq} is shown in Listing~\ref{lst:less_eq}.},
+    label=lst:minimize]
+let energy = energies[i]; // `i' is the thread ID
+var filter_out = 0;
+for (var j = e_start; j < e_end; j++) {
+    let e2 = energies[j];
+    // Skip reflexive comparisons.
+    // When energies are equal,
+    // keep only those with higher index
+    let eq = e2 == energy;
+    if j != i && ((eq && i < j) ||
+                  (!eq && less_eq(e2, energy))) {
+        // Mark to be filtered out
+        filter_out = 1;
+        break;
+    }
+}
+\end{lstlisting}
 
 Theoretically only half of the comparisons could be performed by pruning symmetric
 pairs (i.e.\ compare only $e_1$ with $e_2$, not also $e_2$ with $e_1$),
@@ -449,8 +476,35 @@ The only integer data types are the signed (\texttt{i32}) and unsigned
 (\texttt{u32}) 32-bit integers,
 so each energy tuple is stored in a \texttt{u32},
 which could hold tuples with up to 16 values that are capped at 3.
+Listing~\ref{lst:less_eq} shows how these bit-packed energies can
+be worked with in shader code to test the componentwise $\leq$-relation.
+Equality between two energies can be directly tested by comparing the two
+\texttt{u32}s,
+as is done in line~8 of Listing~\ref{lst:minimize}.
 
-%TODO: Maybe code examples out of shader: energy_eq, less_eq, unpack, pack
+\begin{lstlisting}[language=WGSL,float,
+    caption={WGSL Shader Code handling bit-packed energies
+             to calculate if $a \leq b$.
+             The bitwise AND operation \texttt{a~\&~0x3} sets all but the 2
+             least significant bits to 0,
+             thus comparing just the first field.
+             This is repeated with all six fields,
+             where each bit mask is written in hexadecimal format.
+             For example, hexadecimal C0$_{16}$ is $\ldots0\,1100\,0000_2$ in
+             binary, selecting the fourth 2-bit field.
+             },
+    label=lst:less_eq]
+fn less_eq(a: u32, b: u32) -> bool {
+    return (
+        (a & 0x3)   <= (b & 0x3)   &&
+        (a & 0xc)   <= (b & 0xc)   &&
+        (a & 0x30)  <= (b & 0x30)  &&
+        (a & 0xc0)  <= (b & 0xc0)  &&
+        (a & 0x300) <= (b & 0x300) &&
+        (a & 0xc00) <= (b & 0xc00)
+    );
+}
+\end{lstlisting}
 
 Similarly, update tuples $(u_1, \ldots, u_6) \in \mathbf{Up}_6$
 for the spectroscopy algorithm can also be packed into a single \texttt{u32}.
@@ -488,7 +542,10 @@ the tuple.}\label{tab:update_encoding}
 \end{tabular}
 \end{table}
 
-%TODO: Note about support for other energy configurations
+%TODO: Does this still need \newpage for better layout?
+While this section focused on 6-dimensional energies with maximal values of 3,
+the implementation also supports more general energy games with arbitrary
+dimensionality and value range by doing shader preprocessing.
 
 
 \section{Limitations}
