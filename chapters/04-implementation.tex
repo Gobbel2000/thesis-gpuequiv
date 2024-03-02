@@ -37,11 +37,11 @@ but presents essentially the same algorithm structure.
             \BlankLine
             \eIf(\tcp*[h]{attack positions}){$g \in G_a$}{
                 $\New = \mathrm{Min} \left(
-                    \bigcup_{g' \in \mathrm{Succ}(g)} \uparrow \Updated[g']
+                    \bigcup_{g' \in \mathrm{Succ}(g)} \upclosed \Updated[g']
                 \right)$
             } (\tcp*[h]{defend positions}) {
                 $\New = \mathrm{Min} \left(
-                    \bigcap_{g' \in \mathrm{Succ}(g)} \uparrow \Updated[g']
+                    \bigcap_{g' \in \mathrm{Succ}(g)} \upclosed \Updated[g']
                 \right)$
             }
 
@@ -92,8 +92,8 @@ efficiently run on a GPU\@.
 In order to calculate the union of the upwards-closed sets,
 we can simply unionize the minimal elements that the sets are represented by:
 
-\[\mathrm{Min} \left( \bigcup_{g' \in \mathrm{Succ}(g)} \uparrow \Updated[g'] \right) =
-  \mathrm{Min} \left( \bigcup_{g' \in \mathrm{Succ}(g)}          \Updated[g'] \right)\]
+\[\mathrm{Min} \left( \bigcup_{g' \in \mathrm{Succ}(g)} \upclosed \Updated[g'] \right) =
+  \mathrm{Min} \left( \bigcup_{g' \in \mathrm{Succ}(g)}           \Updated[g'] \right)\]
 
 The task thus becomes to simply
 collect all energies of the current position's successors,
@@ -236,10 +236,10 @@ energies with which the attacker can win,
 regardless of the choice the defender makes.
 
 If $E_1, E_2 \subseteq \mathbf{En}$ are two sets of minimal energies
-representing the upwards-closed sets $\uparrow E_1$ and $\uparrow E_2$,
+representing the upwards-closed sets $\upclosed E_1$ and $\upclosed E_2$,
 their intersection can be obtained by taking the supremum of all their combinations:
 \begin{equation*}
-    \mathrm{Min} (\uparrow E_1 \cap \uparrow E_2 ) =
+    \mathrm{Min} (\upclosed E_1 \cap \upclosed E_2 ) =
     \mathrm{Min} (\{ \sup(e_1, e_2) \mid e_1 \in E_1,\ e_2 \in E_2 \})
 \end{equation*}
 
@@ -600,7 +600,7 @@ likely not execute all threads simultaneously.
 
 That means that on very large inputs,
 we may not be able to process the entire visit list in a single shader call.
-Instead, only part of the visit may be processed at once,
+Instead, only part of the visit list may be processed at once,
 taking into account the thread limit as well as memory usage.
 The algorithm is still correct,
 even if only some subset of the visit list is processed.
