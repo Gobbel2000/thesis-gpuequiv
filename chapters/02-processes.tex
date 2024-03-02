@@ -1,6 +1,6 @@
-In order to talk about the algorithm to find equivalences between processes
-and its GPU implementation,
-we will first introduce the models that all this is based on.
+With the goal of introducing the algorithm for finding equivalences between
+processes,
+this chapter will introduce the theoretical concepts that this work is based on.
 First and foremost this includes an explanation and definition
 of the models we use to represent processes.
 Further we will explore different ways to compare two processes and how that
@@ -9,49 +9,76 @@ Finally we will outline how the algorithm works,
 that gives us a multifaceted view of the relation of two processes by testing
 multiple of those equivalences at once~\cite{bisping2023process}.
 
+
 \section{Modeling Processes}
 
-For our purposes we can think of a process as the set of actions it can perform.
-After each of these actions the process enters a new state,
-which is itself another process with another set of actions.
+We represent processes in a directed graph.
+The outgoing edges of a node are the possible steps it can perform next.
+Each edge is labelled with a specific action that occurs when taking that step.
+After performing an action,
+the process enters a new state represented by another node,
+which is itself a process with its set of actions.
 This forms a sort of state machine that at every step
 moves to some other state by performing one of the currently available actions.
 The series of actions being chosen
-constitute the observable behavior of the machine,
+constitutes the observable behavior of the machine,
 while its current state defines what actions it can do next.
-
-This state machine can then be seen as a directed graph
-with a node for each state and an edge between two nodes,
-if it can transition its state from one to the other.
-Each edge is labeled with the action that is performed during the state
-transition.
-Such a graph is called a \emph{Labeled transition system}
+Such a structure is called a \emph{Labeled transition system}
 or \emph{LTS} for short~\cite{reactive_systems}.
-
-% Formal definition
+Figure~\ref{fig:example_lts} gives an example for how the graph of an LTS might
+look like.
 
 \begin{definition}[Labeled transition system~\cite{reactive_systems}]
     A labeled transition system is a triple
-    $(\mathsf{Proc}, \mathsf{Act}, \rightarrow)$
+    $(\mathsf{Proc}, \mathsf{Act}, {\rightarrow})$
     where:
 
     \begin{itemize}
         \item $\mathsf{Proc}$ is the set of states or processes,
         \item $\mathsf{Act}$ is a set of actions,
-        \item $\rightarrow \subseteq \mathsf{Proc} \times \mathsf{Act} \times \mathsf{Proc}$
+        \item ${\rightarrow} \subseteq \mathsf{Proc} \times \mathsf{Act} \times \mathsf{Proc}$
             is the transition relation.
             We also write
-            $p \xrightarrow{\alpha} p'$ for $(p, \alpha, p') \in \rightarrow$,
+            $p \xrightarrow{\alpha} p'$ for $(p, \alpha, p') \in {\rightarrow}$,
             meaning we can transition from state $p$ to $p'$
             using the action $\alpha$.
     \end{itemize}
 \end{definition}
 
-% Maybe introduce an example here.
+\begin{figure}[htpb]
+\begin{center}
+\begin{tikzpicture}[p/.style={circle,draw},->]
+    \node[p] (0) {$p_0$}
+        child {node[p] {$p_1$}
+            child {node[p] {$p_2$} edge from parent node[left] {$b$}}
+            child {node[p] {$p_3$} edge from parent node[right] {$c$}}
+            edge from parent node[left] {$a$}
+        };
+    \node[p] (4) [right=25mm of 0] {$p_4$}
+        child {node[p] {$p_5$}
+            child {node[p] {$p_7$} edge from parent node[left] {$b$}}
+            edge from parent node[left] {$a$}
+        }
+        child {node[p] {$p_6$}
+            child {node[p] {$p_8$} edge from parent node[right] {$c$}}
+            edge from parent node[right] {$a$}
+        };
+\end{tikzpicture}
+\end{center}
+\caption{An example for an LTS. In this case,
+    $\mathsf{Proc} = \{p_0, p_1, \ldots, p_8\}$ and
+    $\mathsf{Act} = \{a, b, c\}$.
+}%
+\label{fig:example_lts}
+\end{figure}
+
 
 \section{Equivalences between Processes}
 
-\section{Spectroscopy Algorithm}
+% Trace Equivalence
+% Bisimilarity
+% Equivalences characterized by energies (through HML)
+
 
 \section{Energy Games}\label{sec:energy_games}
 
@@ -116,3 +143,6 @@ or \emph{LTS} for short~\cite{reactive_systems}.
 
 %TODO: Inverse update function upd^{-1}
 %TODO: Energy tuples, upwards-closed sets, representation by minimal energies
+
+\section{Spectroscopy Algorithm}
+
