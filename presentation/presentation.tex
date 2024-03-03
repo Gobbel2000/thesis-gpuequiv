@@ -19,10 +19,10 @@
 \useinnertheme{rectangles}
 % TUB color
 \definecolor{darkred}{RGB}{197,14,31}
-% For numbered figures
-\setbeamertemplate{caption}[numbered]
+% Remove navigation symbols
+\setbeamertemplate{navigation symbols}{}
 
-\title[gpuequiv]{Accelerating Process Equivalence Energy Games using WebGPU}
+\title[]{GPU-beschleunigte Energiespiele für Prozessäquivalenzen}
 \subtitle{Bachelorarbeit im Fachbereich MTV}
 \author{Gabriel Vogel}
 \titlegraphic{
@@ -73,6 +73,7 @@
         };
 \end{tikzpicture}
 }
+\newcommand{\upclosed}{\uparrow\!}
 
 \begin{document}
 
@@ -97,7 +98,7 @@
 
 %-------------------------------------------------------------------------------
 \begin{frame}{GPU vs. CPU}
-    Graphical Processing Unit:
+    Graphics Processing Unit:
     \begin{itemize}
         \item Ursprünglich reiner Grafikbeschleuniger für übliche
             Rendering-Pipeline
@@ -153,11 +154,12 @@ Branch Divergence~\autocite[Grafik:][]{Hijma2023}
         \draw[->] (\x, -2) -- (\x, -2.5);
         \draw[->] (\x, -3.5) -- (\x, -4);
     }
-    \node[anchor=east] at (-0.6, 0)   {\texttt{a}};
-    \node[anchor=west] at (-5, -0.75) {\texttt{if a > 0}};
-    \node[anchor=west] at (-5, -1.5)  {\texttt{~~c = a*a+b}};
-    \node[anchor=west] at (-5, -2.25) {\texttt{else}};
-    \node[anchor=west] at (-5, -3)    {\texttt{~~c = a*a-b}};
+    \node[anchor=east] at (-0.6, 0)    {\texttt{a}};
+    \node[anchor=west] at (-5, -0.75)  {\texttt{if a > 0}};
+    \node[anchor=west] at (-5, -1.5)   {\texttt{~~c = a*a+b}};
+    \node[anchor=west] at (-5, -2.25)  {\texttt{else}};
+    \node[anchor=west] at (-5, -3)     {\texttt{~~c = a*a-b}};
+    \node[anchor=east] at (-0.6, -4.5) {\texttt{c}};
 \end{tikzpicture}
 \end{center}
 
@@ -278,22 +280,24 @@ gewinnt.
     \begin{block}{Energien}
         $\mathbf{En} = {(\mathbb{N} \cup \{ \infty \})}^6$\\
         Oberhalb-Menge von $E \subseteq \mathbf{En}$:
-        \[\uparrow E := \{e \in \mathbf{En} \mid \exists a \in E . e \geq a\}\]
+        \[\upclosed E := \{e \in \mathbf{En} \mid \exists a \in E\,.\,e \geq a\}\]
         Minimale Energien~\autocite{bisping2023process}:
         \[\mathrm{Min} (E) :=
-            \{e \in E \mid \nexists e' \in E . e' \leq e \wedge e' \ne e\}\]
+            \{e \in E \mid \nexists e' \in E\,.\,e' \leq e \wedge e' \ne e\}\]
     \end{block}
 \end{column}
 \end{columns}
 
 \end{frame}
 
-\section{Implementierung}
+\section{GPU-Implementierung Energiespiele}
+
+\subsection{Angriffspositionen}
 
 %-------------------------------------------------------------------------------
 \begin{frame}{Angriffspositionen}
-\[\mathrm{Min} \left( \bigcup_{g' \in \mathrm{Succ}(g)} \uparrow E'_{g'} \right) =
-  \mathrm{Min} \left( \bigcup_{g' \in \mathrm{Succ}(g)}          E'_{g'} \right)\]
+\[\mathrm{Min} \left( \bigcup_{g' \in \mathrm{Succ}(g)} \upclosed E'_{g'} \right) =
+  \mathrm{Min} \left( \bigcup_{g' \in \mathrm{Succ}(g)}           E'_{g'} \right)\]
 \vspace{1em}
 \pause
 
@@ -320,10 +324,6 @@ gewinnt.
     \node (updated2_1) [right=of energy2_1] {$e_{g_2,1}'$};
     \node (updated2_2) [right=of energy2_2] {$e_{g_2,2}'$};
     \node (udots2) at (updated2_2 |- dots2) {\rvdots};
-    % Include energies of g itself
-    %\node (energyg_1) [below] at (udots2.south) {$e_{g,1}$};
-    %\node (energyg_2) [below] at (energyg_1.south) {$e_{g,2}$};
-    %\node (udots3) [below] at (energyg_2.south) {\rvdots};
 
     % Minimized energies
     \node (minimal1) [right=14mm of udots1.north] {$e_1^*$};
@@ -345,10 +345,6 @@ gewinnt.
     \draw[->] (energy2_1) -- (updated2_1);
     \draw[->] (energy2_2) -- (updated2_2);
     \draw[->] (energy2_2.east |- dots2) -- (updated2_2.west |- udots2);
-    % Energies from g
-    %\draw[->,shorten >= 4mm] (start_node.south) |-
-    %    node [near end,below] {energies of $g$}
-    %    (energyg_2.west);
 
     % Diagonal lines suggesting the reduction to minimal energies
     \draw[thick] (updated1_1.east |- udots2.south) -- (minimal1.west |- mdots.south);
@@ -358,17 +354,20 @@ gewinnt.
 \end{center}
 \end{frame}
 
+\subsection{Verteidigungspositionen}
+
 %-------------------------------------------------------------------------------
 \begin{frame}{Verteidigungspositionen}
-    \[\text{Gesucht:}\quad\mathrm{Min} \left( \bigcap_{g' \in \mathrm{Succ}(g)} \uparrow E'_{g'} \right)\]
+    \[\text{\textbf{Gesucht:}}\quad\mathrm{Min} \left(
+        \bigcap_{g' \in \mathrm{Succ}(g)} \upclosed E'_{g'} \right)\]
     \pause
 
-    Schnittmenge von zwei Energiemengen:
-    \[\mathrm{Min} (\uparrow E_1 \cap \uparrow E_2 ) =
+    \textbf{Schnittmenge von zwei Energiemengen:}
+    \[\mathrm{Min} (\upclosed E_1 \cap \upclosed E_2 ) =
       \mathrm{Min} (\{ \sup(e_1, e_2) \mid e_1 \in E_1,\ e_2 \in E_2 \})\]
     \pause
 
-    Iterative Schnittmenge:~\autocite{brihaye2023multi}
+    \textbf{Iterative Schnittmenge:}~\autocite{brihaye2023multi}
     \footnotesize
     \setlength{\algomargin}{3em}
     \begin{algorithm}[H]
@@ -386,10 +385,25 @@ gewinnt.
     \end{algorithm}
 \end{frame}
 
+
+\section{Vorstellung des Programms}
+
+%-------------------------------------------------------------------------------
+\begin{frame}{Demo}
+    \begin{columns}
+    \begin{column}{0.46\textwidth}
+        \exampleLTS
+    \end{column}
+    \begin{column}{0.54\textwidth}
+        \includegraphics[width=\textwidth]{images/spectrum.pdf}
+    \end{column}
+    \end{columns}
+\end{frame}
+
 \subsection{Benchmarks}
 
 %-------------------------------------------------------------------------------
-\begin{frame}{Benchmarks}
+\begin{frame}{VLTS Benchmarks}
 \centering
 \footnotesize
 \begin{tabular}{@{}l
@@ -404,7 +418,7 @@ gewinnt.
     &\multicolumn{3}{c}{Laufzeit (s)} \\
     \cmidrule(lr){2-3} \cmidrule(lr){4-5} \cmidrule(l){6-8}
     LTS~\autocite{vlts}
-    &$|P|$ &$\sim_B$
+    &$|\mathsf{Proc}|$ &$\sim_B$
     &$|G|$ &$|E|$
     &Scala~\autocite{bisping2023process} &{gpuequiv} &{Graph} \\
     \midrule
@@ -423,18 +437,18 @@ gewinnt.
 \end{tabular}
 \end{frame}
 
-\section{Vorstellung des Programms}
+
+\section*{Fazit}
 
 %-------------------------------------------------------------------------------
-\begin{frame}{Demo}
-    \begin{columns}
-    \begin{column}{0.46\textwidth}
-        \exampleLTS
-    \end{column}
-    \begin{column}{0.54\textwidth}
-        \includegraphics[width=\textwidth]{images/spectrum.pdf}
-    \end{column}
-    \end{columns}
+\begin{frame}{Zusammengefasst}
+    \begin{itemize}
+        \item Idee: Schnellere Spektroskopie mithilfe von GPU
+        \item Ergebnis: Rust library \texttt{gpuequiv} verfügbar auf
+            \url{https://github.com/Gobbel2000/gpuequiv}
+        \item Mittels WebGPU + WebAssembly auch im Browser
+        \item Erzielt deutlich schnellere Laufzeiten
+    \end{itemize}
 \end{frame}
 
 \section*{Quellen}
