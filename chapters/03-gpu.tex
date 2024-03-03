@@ -126,11 +126,12 @@ should be handled with care and, if possible, avoided~\cite{Hijma2023}.
         \draw[->] (\x, -2) -- (\x, -2.5);
         \draw[->] (\x, -3.5) -- (\x, -4);
     }
-    \node[anchor=east] at (-0.6, 0)   {\verb|a|};
-    \node[anchor=west] at (-5, -0.75) {\verb|if a > 0|};
-    \node[anchor=west] at (-5, -1.5)  {\verb|  c = a*a+b|};
-    \node[anchor=west] at (-5, -2.25) {\verb|else|};
-    \node[anchor=west] at (-5, -3)    {\verb|  c = a*a-b|};
+    \node[anchor=east] at (-0.6, 0)    {\texttt{a}};
+    \node[anchor=west] at (-5, -0.75)  {\texttt{if a > 0}};
+    \node[anchor=west] at (-5, -1.5)   {\texttt{~~c = a*a+b}};
+    \node[anchor=west] at (-5, -2.25)  {\texttt{else}};
+    \node[anchor=west] at (-5, -3)     {\texttt{~~c = a*a-b}};
+    \node[anchor=east] at (-0.6, -4.5) {\texttt{c}};
 \end{tikzpicture}
 \caption{Branch divergence in parallel execution.
     Shaded boxes indicate idle threads. Adapted from~\cite{Hijma2023}.
