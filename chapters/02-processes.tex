@@ -45,7 +45,7 @@ look like.
     \end{itemize}
 \end{definition}
 
-\begin{figure}[htpb]
+\begin{figure}[tb]
 \begin{center}
 \begin{tikzpicture}[p/.style={circle,draw},->]
     \node[p] (0) {$p_0$}
@@ -65,7 +65,7 @@ look like.
         };
 \end{tikzpicture}
 \end{center}
-\caption{An example for an LTS. In this case,
+\caption{An example for an LTS\@. In this case,
     $\mathsf{Proc} = \{p_0, p_1, \ldots, p_8\}$ and
     $\mathsf{Act} = \{a, b, c\}$.
 }%
@@ -75,9 +75,127 @@ look like.
 
 \section{Equivalences between Processes}
 
-% Trace Equivalence
-% Bisimilarity
-% Equivalences characterized by energies (through HML)
+One of the most important questions that arises in the context of transition
+systems is whether two processes show the same behavior.
+This is a difficult question,
+because there are many different ways to define
+what \enquote{equivalent behavior} means.
+This section will present two important definitions: Trace equivalence and
+Bisimilarity.
+
+\subsubsection{Trace Equivalence}
+
+A simple way to qualify the behavior of a process is to look at the possible
+strings of actions (traces) it can perform.
+This is particularly apparent when viewing an LTS as a sort of automaton.
+A sequence of actions $\alpha_1, \ldots, \alpha_k \in \mathsf{Act}^*$
+is a trace of a process $p$ if
+$p \xrightarrow{\alpha_1} p_1 \xrightarrow{\alpha_2} p_2
+\ldots p_{k-1} \xrightarrow{\alpha_k} p_k$.
+The function $Traces(p)$ produces the set of all traces for a process $p$.
+We now call two processes $p$ and $q$ \emph{trace-equivalent}
+if $Traces(p) = Traces(q)$~\cite{reactive_systems}.
+
+For example, in Figure~\ref{fig:example_lts} the traces of $p_0$ are
+$Traces(p_0) = \{a, ab, ac\}$.
+The process $p_4$ can produce exactly the same traces,
+so $p_0$ and $p_4$ are trace-equivalent.
+However it is not difficult to see some difference in the graphs of both
+processes that this comparison seems to ignore.
+Indeed, trace equivalence is one of the weakest equivalence notions,
+meaning it more easily equates processes.
+An even weaker equivalence would be \emph{enabledness},
+which already equates two processes
+if they have the same set of enabled actions,
+given as
+$\{\alpha \in \mathsf{Act} \mid
+   \exists p' \in \mathsf{Proc}\,.\,p \xrightarrow{\alpha} p'\}$
+for a process $p$.
+
+
+\subsubsection{Bisimilarity}
+
+\subsection{Hennessy--Milner Logic}
+
+A very useful tool when discussing process equivalences is the
+Hennessy--Milner logic (or HML),
+which is a modal logic that can be used to formalize various
+properties of a process.
+A process satisfies a HML-formula if it observes
+the property specified by the formula,
+otherwise it does not satisfy it.
+We adopt the syntax from~\cite{bisping2023process},
+which is slightly different although functionally equivalent to the definition
+in~\cite{reactive_systems}.
+This is relevant because we will later require precise control over the
+structure of HML-formulas.
+
+\begin{definition}[%
+    Hennessy--Milner logic~\cite{bisping2023process,reactive_systems}]%
+    \label{def:hml}
+    The set $\mathcal{M}$ of HML-formulas over a set of actions $\mathsf{Act}$
+    is constructed by the following grammar:
+    \begin{align*}
+        \varphi ::=\ &\langle \alpha \rangle \varphi, \qquad \alpha \in \mathsf{Act} \\
+                \mid \quad &\bigwedge \{\psi, \psi, \ldots\} \\
+        \psi ::=\ &\neg \varphi \mid \varphi
+    \end{align*}
+    The semantics $\llbracket \varphi \rrbracket$ of a formula
+    $\varphi$ in a given LTS
+    $(\mathsf{Proc}, \mathsf{Act}, {\rightarrow})$ denotes the set of processes in
+    $\mathsf{Proc}$ that satisfy $\varphi$.
+    It is recursively defined as:
+    \begin{align*}
+        \llbracket \langle \alpha \rangle \varphi \rrbracket &:=
+            \{p \in \mathsf{Proc} \mid
+              \exists p' \in \llbracket \varphi \rrbracket\,.\,
+              p \xrightarrow{\alpha} p'
+            \} \\
+        \llbracket \neg \varphi \rrbracket &:=
+            \mathsf{Proc} \setminus \llbracket \varphi \rrbracket \\
+        \llbracket \bigwedge_{i \in I} \psi_i \rrbracket &:=
+            \bigcap_{i \in I} \llbracket \psi_i \rrbracket
+    \end{align*}
+    The recursion in the above definition can be terminated using the empty
+    conjunction $\top := \bigwedge \emptyset$
+    which itself always evaluates to true:
+    $\llbracket \top \rrbracket = \mathsf{Proc}$.
+\end{definition}
+
+To give a few examples,
+both $p_0$ and $p_4$ of Figure~\ref{fig:example_lts} satisfy the HML-formula
+$\langle a \rangle \langle b \rangle \top$,
+which requires an $a$-transition followed by a $b$-transition,
+thus encoding the trace $ab$.
+However the formula
+$\varphi = \langle a \rangle \bigwedge \{
+    \langle b \rangle \top, \langle c \rangle \top \}$
+is only satisfied by $p_0$, not by $p_4$,
+since it requires an $a$-transition
+after which both actions $b$ and $c$ should be possible.
+$p_4$ does have two $a$-transitions,
+but neither $p_5$ nor $p_6$ offers both $b$ and $c$.
+Therefore $\varphi$ is a \emph{distinguishing formula} for $p_0$ and $p_4$,
+since it points out a difference in their behavior.
+
+
+\subsection{The Equivalence Spectrum}
+
+These and many other behavioral equivalences have been collected and ordered
+in the \emph{linear-time--branching-time spectrum} % chktex 8
+by \textcite{glabbeek1990spectrum}.
+Reasoning about all of them at once requires a more unified definition,
+which can be achieved through HML-formulas.
+
+Every notion of equivalence is characterized by a subset of HML-formulas:
+if the subset includes a distinguishing formula for two processes,
+that equivalence does not hold.
+On the other hand, if two processes are equated,
+then it is impossible to find a distinguishing formula in the respective
+subset.
+
+These subsets are characterized by giving each formula a multidimensional
+cost-vector and limiting the subset to formulas up to a maximum cost value.
 
 
 \section{Energy Games}\label{sec:energy_games}
@@ -145,4 +263,3 @@ look like.
 %TODO: Energy tuples, upwards-closed sets, representation by minimal energies
 
 \section{Spectroscopy Algorithm}
-
