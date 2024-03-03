@@ -112,8 +112,18 @@ $\{\alpha \in \mathsf{Act} \mid
    \exists p' \in \mathsf{Proc}\,.\,p \xrightarrow{\alpha} p'\}$
 for a process $p$.
 
+Trace-equivalence, as well as many other equivalences,
+can also be seen directionally.
+If one only cares about whether all traces of $p$ are also traces in $q$ and
+not the other way around---meaning $Traces(p) \subseteq Traces(q)$---we get a
+preorder instead of an equivalence relation where $p$ is preordered by $q$
+if the condition holds.
+
 
 \subsubsection{Bisimilarity}
+
+\emph{TODO}
+
 
 \subsection{Hennessy--Milner Logic}
 
@@ -160,6 +170,11 @@ structure of HML-formulas.
     conjunction $\top := \bigwedge \emptyset$
     which itself always evaluates to true:
     $\llbracket \top \rrbracket = \mathsf{Proc}$.
+
+    For $p \in \mathsf{Proc}, \varphi \in \mathcal{M}$
+    we write $p \models \varphi$ if, and only if,
+    $p \in \llbracket \varphi \rrbracket$,
+    meaning $p$ satisfies the formula $\varphi$.
 \end{definition}
 
 To give a few examples,
@@ -181,24 +196,65 @@ since it points out a difference in their behavior.
 
 \subsection{The Equivalence Spectrum}
 
-These and many other behavioral equivalences have been collected and ordered
+A number of behavioral equivalences have been collected and ordered
 in the \emph{linear-time--branching-time spectrum} % chktex 8
 by \textcite{glabbeek1990spectrum}.
-Reasoning about all of them at once requires a more unified definition,
-which can be achieved through HML-formulas.
+By examining subsets of HML-formulas we can achieve a general definition
+for all equivalences,
+which is a crucial step towards our goal of testing all of them at once.
 
-Every notion of equivalence is characterized by a subset of HML-formulas:
-if the subset includes a distinguishing formula for two processes,
+Each notion of equivalence is characterized by a subset of HML-formulas
+$\mathcal{O} \subseteq \mathcal{M}$.
+If the subset includes a distinguishing formula for two processes $p$ and $q$,
+$\exists \varphi \in \mathcal{O}\,.\,
+    p \models \varphi \wedge q \not\models \varphi$,
 that equivalence does not hold.
-On the other hand, if two processes are equated,
-then it is impossible to find a distinguishing formula in the respective
-subset.
+If there is no such formula, 
+$p$ is preordered by $q$.
+Only if $q$ is also preordered by $p$,
+meaning there is also no distinguishing formula $\varphi'$
+with $q \models \varphi'$ and $p \not\models \varphi'$,
+can we call $p$ and $q$ equivalent with respect to the chosen set of formulas.
 
-These subsets are characterized by giving each formula a multidimensional
-cost-vector and limiting the subset to formulas up to a maximum cost value.
+\textcite{bisping2023process} represents these subsets of $\mathcal{M}$
+by assigning a 6-dimensional \enquote{expressiveness price} to each formula
+and construcing the subsets by including all formulas below a maximum price.
+Without going further into the exact definition of the prices,
+all equivalences, along with their price vector representing a subset of
+HML-formulas are listed in Table~\ref{tab:spectrum}.
 
+\begin{table}[htpb]
+    \centering
+    \caption{Equivalences of the linear-time--branching-time spectrum and the
+        maximum expressiveness a HML-formula may have to refute this
+        equivalence~\cite{bisping2023process}.}
+    \label{tab:spectrum}
+    \begin{tabular}{l l}
+        \toprule
+        Equivalence &Price \\
+        \midrule
+        Bisimulation &$(\infty, \infty, \infty, \infty, \infty, \infty)$ \\
+        2-nested Simulation &$(\infty, \infty, \infty, \infty, \infty, 1)$ \\
+        Ready Simulation &$(\infty, \infty, \infty, \infty, 1, 1)$ \\
+        Readiness Traces &$(\infty, \infty, \infty, 1, 1, 1)$ \\
+        Possible Futures &$(\infty, 2, \infty, \infty, \infty, 1)$ \\
+        Simulation &$(\infty, \infty, \infty, \infty, 0, 0)$ \\
+        Failure Traces &$(\infty, \infty, \infty, 0, 1, 1)$ \\
+        Readiness &$(\infty, 2, 1, 1, 1, 1)$ \\
+        Revivals &$(\infty, 2, 1, 0, 1, 1)$ \\
+        Impossible Futures &$(\infty, 2, 0, 0, \infty, 1)$ \\
+        Failures &$(\infty, 2, 0, 0, 1, 1)$ \\
+        Traces &$(\infty, 1, 0, 0, 0, 0)$ \\
+        Enabledness &$(1, 1, 0, 0, 0, 0)$ \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+% Bisimilarity is special: Hennessy--Milner theorem and why (∞∞∞∞∞∞)
 
 \section{Energy Games}\label{sec:energy_games}
+
+%TODO: Energy tuples, upwards-closed set
 
 \begin{definition}[Energy updates~\cite{bisping2023process}]\label{def:update}
     The set of $N$-dimensional energy updates $\mathbf{Up}_N$ contains
@@ -260,6 +316,7 @@ cost-vector and limiting the subset to formulas up to a maximum cost value.
 \end{definition}
 
 %TODO: Inverse update function upd^{-1}
-%TODO: Energy tuples, upwards-closed sets, representation by minimal energies
 
 \section{Spectroscopy Algorithm}
+
+%TODO: Bringing it all together: Quick overview of game generation
