@@ -103,19 +103,8 @@
         \item Ursprünglich reiner Grafikbeschleuniger für übliche
             Rendering-Pipeline
         \item Führt die gleichen Berechnungen für jeden Bildschirmpixel aus
-        \item Nur zusätzliche Hardware, gesteurt von CPU
-    \end{itemize}
-\end{frame}
-
-%-------------------------------------------------------------------------------
-\begin{frame}{GPU-Compute}
-    GPU bietet auch Möglichkeit für allgemeinere Berechnungen
-
-    Plattformen:
-    \begin{itemize}
-        \item CUDA (nur Nvidia)
-        \item ROCm (nur AMD)
-        \item OpenCL
+        \item Nur zusätzliche Hardware, gesteuert von CPU
+        \item Potential für allgemeine Berechnungen
     \end{itemize}
 \end{frame}
 
@@ -127,9 +116,6 @@
         \item Hier über Rust-Library \texttt{wgpu},
             entweder nativ oder über WebAssembly
     \end{itemize}
-
-
-
 \end{frame}
 
 %-------------------------------------------------------------------------------
@@ -417,7 +403,6 @@ gewinnt.
     \textbf{Schnittmenge von zwei Energiemengen:}
     \[\mathrm{Min} (\upclosed E_1 \cap \upclosed E_2 ) =
       \mathrm{Min} (\{ \sup(e_1, e_2) \mid e_1 \in E_1,\ e_2 \in E_2 \})\]
-    \pause
     }
 
     \only<3>{
