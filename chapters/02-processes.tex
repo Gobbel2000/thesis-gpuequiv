@@ -122,7 +122,36 @@ if the condition holds.
 
 \subsubsection{Bisimilarity}
 
-\emph{TODO}
+\emph{Bisimilarity} is special because it is the strongest of the behavioral
+equivalences.
+It requires two processes to provide the same set of actions not only initially,
+but also after every time both processes have been advanced
+by the same chain of actions.
+It is defined as follows:
+
+\begin{definition}[Bisimulation~\cite{reactive_systems}]\label{def:bisimulation}
+    Processes $p, q \in \mathsf{Proc}$ are bisimilar, written $p \sim q$,
+    if and only if there exists a relation
+    $\mathcal{R} \subseteq \mathsf{Proc} \times \mathsf{Proc}$
+    with $p\, \mathcal{R}\, q$ and for every $s_1\, \mathcal{R}\, s_2$ and
+    $\alpha \in \mathsf{Act}$:
+    \begin{itemize}
+        \item if $s_1 \xrightarrow{\alpha} s_1'$, then there is a transition
+            $s_2 \xrightarrow{\alpha} s_2'$ such that $s_1'\, \mathcal{R}\, s_2'$,
+        \item if $s_2 \xrightarrow{\alpha} s_2'$, then there is a transition
+            $s_1 \xrightarrow{\alpha} s_1'$ such that $s_1'\, \mathcal{R}\, s_2'$.
+    \end{itemize}
+    A relation $\mathcal{R}$ satisfying these conditions is called a
+    \emph{bisimulation}.
+\end{definition}
+
+This does not hold for our example in Figure~\ref{fig:example_lts}.
+If we were trying to construct a bisimulation relation with
+$p_0\, \mathcal{R}\, p_4$,
+that would require $p_1\, \mathcal{R}\, p_5$
+because $p_0 \xrightarrow{a} p_1$ and $p_4 \xrightarrow{a} p_5$.
+But $p_1$ has a $c$-transition to $p_3$ which $p_5$ cannot simulate,
+thus there is no bisimulation that relates $p_0$ and $p_4$.
 
 
 \subsection{Hennessy--Milner Logic}
@@ -166,12 +195,15 @@ structure of HML-formulas.
         \llbracket \bigwedge_{i \in I} \psi_i \rrbracket &:=
             \bigcap_{i \in I} \llbracket \psi_i \rrbracket
     \end{align*}
+    We use $\llbracket \neg \varphi \rrbracket$,
+    but $\neg \varphi \notin \mathcal{M}$:
+    negated formulas can only occur inside a conjunction.
     The recursion in the above definition can be terminated using the empty
     conjunction $\top := \bigwedge \emptyset$
     which itself always evaluates to true:
     $\llbracket \top \rrbracket = \mathsf{Proc}$.
 
-    For $p \in \mathsf{Proc}, \varphi \in \mathcal{M}$
+    For $p \in \mathsf{Proc},\, \varphi \in \mathcal{M}$
     we write $p \models \varphi$ if, and only if,
     $p \in \llbracket \varphi \rrbracket$,
     meaning $p$ satisfies the formula $\varphi$.
@@ -208,11 +240,11 @@ $\mathcal{O} \subseteq \mathcal{M}$.
 If the subset includes a distinguishing formula for two processes $p$ and $q$,
 $\exists \varphi \in \mathcal{O}\,.\,
     p \models \varphi \wedge q \not\models \varphi$,
-that equivalence does not hold.
+that equivalence does not hold, it is refuted by $\varphi$.
 If there is no such formula, 
-$p$ is preordered by $q$.
+$p$ is preordered by $q$ with respect to the chosen equivalence.
 Only if $q$ is also preordered by $p$,
-meaning there is also no distinguishing formula $\varphi'$
+meaning there is also no distinguishing formula $\varphi' \in \mathcal{O}$
 with $q \models \varphi'$ and $p \not\models \varphi'$,
 can we call $p$ and $q$ equivalent with respect to the chosen set of formulas.
 
@@ -227,7 +259,7 @@ HML-formulas are listed in Table~\ref{tab:spectrum}.
     \centering
     \caption{Equivalences of the linear-time--branching-time spectrum and the
         maximum expressiveness a HML-formula may have to refute this
-        equivalence~\cite{bisping2023process}.}
+        equivalence~\cite{bisping2023process}.}%
     \label{tab:spectrum}
     \begin{tabular}{l l}
         \toprule
@@ -250,7 +282,12 @@ HML-formulas are listed in Table~\ref{tab:spectrum}.
     \end{tabular}
 \end{table}
 
-% Bisimilarity is special: Hennessy--Milner theorem and why (∞∞∞∞∞∞)
+The strongest equivalence, bisimulation, puts no restrictions on the price of
+distinguishing formulas: all components are set to $\infty$.
+This property is famously characterized by the Hennessy--Milner-theorem,
+stating that two processes are bisimilar if, and only if,
+they satisfy exactly the same HML-formulas~\cite{reactive_systems}.
+
 
 \section{Energy Games}\label{sec:energy_games}
 
