@@ -175,9 +175,10 @@ structure of HML-formulas.
     The set $\mathcal{M}$ of HML-formulas over a set of actions $\mathsf{Act}$
     is constructed by the following grammar:
     \begin{align*}
-        \varphi ::=\ &\langle \alpha \rangle \varphi, \qquad \alpha \in \mathsf{Act} \\
-                \mid \quad &\bigwedge \{\psi, \psi, \ldots\} \\
-        \psi ::=\ &\neg \varphi \mid \varphi
+        \varphi \coloncolonequals\ &\langle \alpha \rangle \varphi,
+            \qquad \alpha \in \mathsf{Act} \\
+            \mid \quad &\bigwedge \{\psi, \psi, \ldots\} \\
+        \psi \coloncolonequals\ &\neg \varphi \mid \varphi
     \end{align*}
     The semantics $\llbracket \varphi \rrbracket$ of a formula
     $\varphi$ in a given LTS
@@ -185,21 +186,21 @@ structure of HML-formulas.
     $\mathsf{Proc}$ that satisfy $\varphi$.
     It is recursively defined as:
     \begin{align*}
-        \llbracket \langle \alpha \rangle \varphi \rrbracket &:=
+        \llbracket \langle \alpha \rangle \varphi \rrbracket &\colonequals
             \{p \in \mathsf{Proc} \mid
               \exists p' \in \llbracket \varphi \rrbracket\,.\,
               p \xrightarrow{\alpha} p'
             \} \\
-        \llbracket \neg \varphi \rrbracket &:=
+        \llbracket \neg \varphi \rrbracket &\colonequals
             \mathsf{Proc} \setminus \llbracket \varphi \rrbracket \\
-        \llbracket \bigwedge_{i \in I} \psi_i \rrbracket &:=
+        \llbracket \bigwedge_{i \in I} \psi_i \rrbracket &\colonequals
             \bigcap_{i \in I} \llbracket \psi_i \rrbracket
     \end{align*}
     We use $\llbracket \neg \varphi \rrbracket$,
     but $\neg \varphi \notin \mathcal{M}$:
     negated formulas can only occur inside a conjunction.
     The recursion in the above definition can be terminated using the empty
-    conjunction $\top := \bigwedge \emptyset$
+    conjunction $\top \colonequals \bigwedge \emptyset$
     which itself always evaluates to true:
     $\llbracket \top \rrbracket = \mathsf{Proc}$.
 
@@ -241,7 +242,7 @@ If the subset includes a distinguishing formula for two processes $p$ and $q$,
 $\exists \varphi \in \mathcal{O}\,.\,
     p \models \varphi \wedge q \not\models \varphi$,
 that equivalence does not hold, it is refuted by $\varphi$.
-If there is no such formula, 
+If there is no such formula,
 $p$ is preordered by $q$ with respect to the chosen equivalence.
 Only if $q$ is also preordered by $p$,
 meaning there is also no distinguishing formula $\varphi' \in \mathcal{O}$
@@ -291,7 +292,43 @@ they satisfy exactly the same HML-formulas~\cite{reactive_systems}.
 
 \section{Energy Games}\label{sec:energy_games}
 
-%TODO: Energy tuples, upwards-closed set
+The question of finding equivalences can now be reformulated to ask instead
+about the costs required to distinguish two processes.
+Once that is known, the set of satisfied equivalences can be derived from
+Table~\ref{tab:spectrum}.
+These costs are computed with the help of an \emph{energy game},
+which is an extension over the classic \emph{reachability game}.
+
+In a reachability game,
+the goal of the attacker player is to reach a predefined set of target positions,
+while the defender tries to prevent that.
+The energy game simply adds the restriction that the attacker must also start
+out with a sufficient \emph{energy budget},
+which is decreased at every step.
+In order to support multiple, independent cost factors,
+these energies can be multidimensional:
+
+\begin{definition}[Energies~\cite{bisping2023process,brihaye2023multi}]%
+    \label{def:energies}
+    The set of $N$-dimensional energies is given as
+    \[\mathbf{En}_N \colonequals {(\mathbb{N} \cup \{ \infty \})}^N.\]
+    Energy tuples are compared component-wise, which creates a partial order:
+    \[(e_1, \ldots, e_N) \leq (f_1, \ldots, f_N) \Leftrightarrow e_1 \leq f_1
+    \quad \text{for } i \in [N].\]
+    The supremum between two energy tuples is defined as usual:
+    \[\sup((e_1, \ldots, e_N), (f_1, \ldots, f_N)) \colonequals
+        (\max(e_1, f_1), \ldots, \max(e_N, f_N)).\]
+    The upward closure $\upclosed E$ for a set of energies
+    $E \subseteq \mathbf{En}$ contains all energies that are greater or equal
+    to an element in $E$:
+    \[\upclosed E \colonequals
+        \{e \in \mathbf{En} \mid \exists e' \in E\,.\,e \geq e'\}\]
+    Conversely, we can reduce an energy set $E \in \mathbf{En}$ to its minimal
+    elements:
+    \[\mathrm{Min} (E) \colonequals
+        \{e \in E \mid \nexists e' \in E\,.\,e' \leq e \wedge e' \ne e\}\]
+\end{definition}
+
 
 \begin{definition}[Energy updates~\cite{bisping2023process}]\label{def:update}
     The set of $N$-dimensional energy updates $\mathbf{Up}_N$ contains
@@ -318,7 +355,7 @@ they satisfy exactly the same HML-formulas~\cite{reactive_systems}.
 
 \begin{definition}[Energy Games]\label{def:energy_game}
     We define an $N$-dimensional energy game as
-    $(G, G_a, G_d, E, w, v_0)$, where 
+    $(G, G_a, G_d, E, w, v_0)$, where
     \begin{itemize}
         \item $G$ is a set of game positions.
         \item $G_a$ and $G_d$ are the sets of attacker and defender positions
