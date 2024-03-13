@@ -1,15 +1,16 @@
-\section{Parallelizing the Algorithm}
-
 At the center of this contribution is a parallel GPU-implementation%
-\footnote{The code can be found at \url{https://github.com/Gobbel2000/gpuequiv}}
+\footnote{The code can be found at \url{https://github.com/Gobbel2000/gpuequiv}.
+This document refers to version 1.0.0.}
 of the energy game introduced in Section~\ref{sec:energy_games}.
-Given a game graph as input, it cal\-cu\-lates for each position the energy budgets
-required for the attacker, starting at the current position, to win the game.
+Given a game graph as input, it calculates the energy budgets
+required for the attacker to win the game.
 This algorithm was described in~\cite{bisping2023process} as part of the
 spectroscopy algorithm, as well as in~\cite{brihaye2023multi} by T. Brihaye and
 A. Goeminne, which more generally covers
 \enquote{Multi-Weighted Reachability Games},
 but presents essentially the same algorithm structure.
+
+\section{Parallelizing the Algorithm}
 
 % First, definitions that are also used outside the algorithm
 \SetKwData{Updated}{updated}
@@ -57,18 +58,35 @@ but presents essentially the same algorithm structure.
     \caption{Parallel Energy Game}\label{alg:energy_game}
 \end{algorithm}
 
-The basic structure is as shown in Algorithm~\ref{alg:energy_game}.
+The basic structure of the parrallel implementation
+is as shown in Algorithm~\ref{alg:energy_game}.
 In order to calculate all the winning budgets,
 we start at the end of the game graph and work our way backwards.
 At all defend positions with no successors the attacker immediately wins,
 so we can set the energies required for the attacker to win there to the
 0-valued energy tuple (lines 1--3).
-In every iteration a set of positions is visited which updates its associated
-energies.
-The next iteration visits the predecessors of all positions, whose energies
+In every iteration a set of positions is visited
+and its associated energies are updated.
+The next iteration visits the predecessors of all positions whose energies
 have changed in the previous iteration, thus walking backwards in the game
 graph in a breadth-first manner. Once an iteration caused no changes to the
 energies, the algorithm terminates.
+
+Walking backwards requires using the inverse update function
+$\mathsf{upd}^{-1}$.
+Calling it on an energy $e$ and an update $u$, $\mathsf{upd}^{-1}(e, u) = e'$,
+produces the lowest energy tuple $e'$, such that $\mathsf{upd}(e', u) \geq e$.
+Decrements (-1) are simply subtracted instead of added,
+but $\mathrm{min}$-updates need to instead create the maximum and on slightly
+different indices:
+For an update element $\mathrm{min}_{\{k, i\}}$ at position $u_k$,
+we need to set $e'_i = \max(e_k, e_i)$,
+so that we correctly have $e_k = \min(e'_k, e'_i)$ in the other direction.
+For example,
+$\mathsf{upd}^{-1}((1, 0, 0), (\mathrm{min}_{\{1, 3\}}, 0, 0)) = (1, 0, 1)$
+is the lowest energy tuple that satisfies
+$\mathsf{upd}((1, 0, 1), (\mathrm{min}_{\{1, 3\}}, 0, 0)) = (1, 0, 1)
+    \geq (1, 0, 0)$
 
 We achieve parallelization by visiting all positions in the visit list in
 parallel, but to fully take advantage of the massively multithreaded
@@ -77,12 +95,13 @@ GPU-architecture, each position is further processed by multiple threads.
 The core of the algorithm lies in lines 11--15, where the upwards-closed sets of
 energies are either unioned or intersected.
 Since both operations demand very different approaches,
-handling them in a single shader would inevitably incur high branch-divergence.
+handling them in a single shader would inevitably incur high branch-divergence
+(see Section~\ref{sec:gpu_model}).
 Therefore both cases are handled by separate, more regular shaders:
 one for processing attack positions, another for defend positions.
 This technique is known as \enquote{Kernel fission}
 and improves resource utilization by allowing threads in a work group to follow
-similar instruction paths~\cite{Hijma2023}.
+more similar instruction paths~\cite{Hijma2023}.
 The following two sections detail how these operations have been implemented to
 efficiently run on a GPU\@.
 
@@ -484,15 +503,17 @@ as is done in line~8 of Listing~\ref{lst:minimize}.
 
 \begin{lstlisting}[language=WGSL,float,
     caption={WGSL Shader Code handling bit-packed energies
-             to calculate if $a \leq b$.
-             The bitwise AND operation \texttt{a~\&~0x3} sets all but the 2
-             least significant bits to 0,
-             thus comparing just the first field.
-             This is repeated with all six fields,
-             where each bit mask is written in hexadecimal format.
-             For example, hexadecimal C0$_{16}$ is $\ldots0\,1100\,0000_2$ in
-             binary, selecting the fourth 2-bit field.
-             },
+        to calculate if $a \leq b$.
+        This is only for the case of 6 elements with a maximum value of 3,
+        other configurations will produce different shader code.
+        The bitwise AND operation \texttt{a\;\&\;0x3} sets all but the 2
+        least significant bits to 0,
+        thus comparing just the first field.
+        This is repeated with all six fields,
+        where each bit mask is written in hexadecimal format.
+        For example, hexadecimal C0$_{16}$ is $\ldots0\,1100\,0000_2$ in
+        binary, selecting the fourth 2-bit field.
+    },
     label=lst:less_eq]
 fn less_eq(a: u32, b: u32) -> bool {
     return (
@@ -542,7 +563,6 @@ the tuple.}\label{tab:update_encoding}
 \end{tabular}
 \end{table}
 
-%TODO: Does this still need \newpage for better layout?
 While this section focused on 6-dimensional energies with maximal values of 3,
 the implementation also supports more general energy games with arbitrary
 dimensionality and value range by doing shader preprocessing.
