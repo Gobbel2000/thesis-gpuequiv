@@ -323,12 +323,30 @@ these energies can be multidimensional:
     to an element in $E$:
     \[\upclosed E \colonequals
         \{e \in \mathbf{En} \mid \exists e' \in E\,.\,e \geq e'\}\]
-    Conversely, we can reduce an energy set $E \in \mathbf{En}$ to its minimal
-    elements:
+    Conversely, we can reduce an energy set $E \subseteq \mathbf{En}$
+    to its minimal elements:
     \[\mathrm{Min} (E) \colonequals
         \{e \in E \mid \nexists e' \in E\,.\,e' \leq e \wedge e' \ne e\}\]
 \end{definition}
 
+The prices in Table~\ref{tab:spectrum} are elements of $\mathbf{En}_6$.
+When discussing the energy game it will be convenient to consider
+upwards-closed energy sets $\upclosed E$,
+but when the energies are based on the natural numbers,
+these sets are obviously infinite in size.
+In practice we only store minimized energy sets $\mathrm{Min}(E)$.
+Because all energies in a minimized set are incomparable to each other,
+they form an antichain.
+Such an antichain, representing a larger upwards-closed set,
+is also referred to as a \emph{Pareto frontier}~\cite{brihaye2023multi}.
+
+In the regular energy game as presented by \textcite{brihaye2023multi},
+energies are simply reduced by subtracting another vector of natural numbers.
+However for the purpose of the spectroscopy algorithm,
+we require a special update function that includes $\mathtt{min}$-updates.
+It is important to note that with this definition energies are only ever
+\emph{decreased} by an update:
+$\mathsf{upd}(e, u) \leq e$ for all $u \in \mathbf{Up}$.
 
 \begin{definition}[Energy updates~\cite{bisping2023process}]\label{def:update}
     The set of $N$-dimensional energy updates $\mathbf{Up}_N$ contains
@@ -340,22 +358,22 @@ these energies can be multidimensional:
         \item $u_k = \mathtt{min}_D$ where $D \subseteq [N]$ and $k \in D$. % chktex 35
     \end{itemize}
 
-    The function
-    $\mathsf{upd}_N: (\mathbf{En}_N, \mathbf{Up}_N) \rightarrow \mathbf{En}_N$
+    The partial function
+    $\mathsf{upd}_N: (\mathbf{En}_N, \mathbf{Up}_N) \rightharpoonup \mathbf{En}_N$
     applies an update to an energy tuple.
     The $k$-th component is given as:
     \begin{equation*}
         \mathsf{upd}_N{(e, u)}_k =
         \begin{cases}
-            e_k + u_k,\quad &\text{if } u_k \in \{-1, 0\}, \\
+            e_k + u_k,\quad &\text{if } u_k \in \{-1, 0\} \text{ and } e_k \geq 1, \\
             \min_{d \in D}{e_d},\quad &\text{if } u_k = \mathtt{min}_D. % chktex 35
         \end{cases}
     \end{equation*}
 \end{definition}
 
-\begin{definition}[Energy Games]\label{def:energy_game}
+\begin{definition}[Energy Games~\cite{bisping2023process}]\label{def:energy_game}
     We define an $N$-dimensional energy game as
-    $(G, G_a, G_d, E, w, v_0)$, where
+    $(G, G_a, G_d, E, w, g_0, e_0)$, where
     \begin{itemize}
         \item $G$ is a set of game positions.
         \item $G_a$ and $G_d$ are the sets of attacker and defender positions
@@ -365,7 +383,8 @@ these energies can be multidimensional:
             together form a directed game graph.
         \item $w: E \rightarrow \mathbf{Up}_N$ is a weight function, assigning an
             energy update to each edge.
-        \item $v_0 \in G$ is the start position of the game.
+        \item $g_0 \in G$ is the start position of the game.
+        \item $e_0 \in \mathbf{En}_N$ is the starting energy budget of the attacker.
     \end{itemize}
 
     The function $\mathrm{Succ}: G \rightarrow 2^G$ gives the successors in the
@@ -375,19 +394,38 @@ these energies can be multidimensional:
     position's predecessors.
 \end{definition}
 
-\begin{definition}[Plays and costs]
+\begin{definition}[Plays and costs~\cite{bisping2023process}]
     A \emph{play} $\rho$ on a given game is a sequence of positions:
     $\rho = g_0g_1 \ldots g_n$ where at each step
     $g_i \in G$ and $(g_i, g_{i+1}) \in E$.
 
-    If a play cannot be further extended, that is,
+    The energy level at step $i$ in the play $\rho$, $\mathsf{EL}_\rho(i)$,
+    is initially $\mathsf{EL}_\rho(0) \colonequals e_0$.
+    After each step the energy level is updated:
+    $\mathsf{EL}_\rho(i + 1) \colonequals
+        \mathsf{upd}(\mathsf{EL}_\rho(i), w(g_i, g_{i+1}))$.
+    A step from $g_i$ to $g_{i+1}$ is not allowed
+    if there is not enough energy left for it,
+    in which case $\mathsf{upd}(\mathsf{EL}_\rho(i), w(g_i, g_{i+1}))$ is undefined.
+
+    If a play cannot be further extended,
+    that is either the energy was depleted or
     $\mathrm{Succ}(g_n) = \emptyset$,
     that play is won by the player who is not stuck:
     if $g_n \in G_a$, the defender wins, if $g_n \in G_d$, the attacker wins.
     Infinite plays are won by the defender.
-
-    \scriptsize{TODO: costs}
 \end{definition}
+
+The problem we want to investigate now is
+what the minimum required energies are
+in order for the attacker to win the game,
+regardless of the defender's decisions.
+For a starting point $g_0 \in G$ we denote this set of winning budgets as
+$W(g_0) \subseteq \mathbf{En}$.
+If we find one energy tuple $e \in W(g_0)$ that is sufficient to win the game,
+we know that all greater energies $e' \geq e$ must also lie in $W(g_0)$.
+Therefore, $W(g_0)$ is an upwards-closed set and we will often just consider
+its minimal elements $\mathrm{Min}(W(g_0))$.
 
 %TODO: Inverse update function upd^{-1}
 
