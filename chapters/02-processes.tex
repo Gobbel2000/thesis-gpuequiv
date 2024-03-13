@@ -108,8 +108,8 @@ An even weaker equivalence would be \emph{enabledness},
 which already equates two processes
 if they have the same set of enabled actions,
 given as
-$\{\alpha \in \mathsf{Act} \mid
-   \exists p' \in \mathsf{Proc}\,.\,p \xrightarrow{\alpha} p'\}$
+$\mathcal{I}(p) \colonequals \{\alpha \in \mathsf{Act} \mid
+    {\exists p' \in \mathsf{Proc}}\,.\,p \xrightarrow{\alpha} p'\}$
 for a process $p$.
 
 Trace-equivalence, as well as many other equivalences,
@@ -329,7 +329,13 @@ these energies can be multidimensional:
         \{e \in E \mid \nexists e' \in E\,.\,e' \leq e \wedge e' \ne e\}\]
 \end{definition}
 
-The prices in Table~\ref{tab:spectrum} are elements of $\mathbf{En}_6$.
+We will construct the energy game in such a way that the attacker essentially
+aims to point out a distinction between two processes,
+while the energy budget required by the attacker could be seen as the
+expressiveness cost of a formula encoding that distinction.
+The prices in Table~\ref{tab:spectrum} are elements of $\mathbf{En}_6$ and
+bring us back from energies to equivalences.
+
 When discussing the energy game it will be convenient to consider
 upwards-closed energy sets $\upclosed E$,
 but when the energies are based on the natural numbers,
@@ -347,6 +353,8 @@ we require a special update function that includes $\mathtt{min}$-updates.
 It is important to note that with this definition energies are only ever
 \emph{decreased} by an update:
 $\mathsf{upd}(e, u) \leq e$ for all $u \in \mathbf{Up}$.
+The following definitions closely follow \textcite{bisping2023process},
+who first proposed the usage of energy games for equivalence analysis.
 
 \begin{definition}[Energy updates~\cite{bisping2023process}]\label{def:update}
     The set of $N$-dimensional energy updates $\mathbf{Up}_N$ contains
@@ -426,9 +434,102 @@ If we find one energy tuple $e \in W(g_0)$ that is sufficient to win the game,
 we know that all greater energies $e' \geq e$ must also lie in $W(g_0)$.
 Therefore, $W(g_0)$ is an upwards-closed set and we will often just consider
 its minimal elements $\mathrm{Min}(W(g_0))$.
+Exactly this task of finding the minimal winning budgets in an energy game
+is at the center of what this work tackles with the help of GPU-acceleration,
+and will be further elaborated in Chapter~\ref{ch:implementation}.
 
-%TODO: Inverse update function upd^{-1}
+%TODO: Maybe \newpage here
 
 \section{Spectroscopy Algorithm}
 
-%TODO: Bringing it all together: Quick overview of game generation
+The entire spectroscopy algorithm can now be outlined by
+first generating an energy game for a given LTS,
+and then computing the winning budgets for that game.
+These winning budgets then represent the costs required to distinguish a
+process pair,
+which can be translated into some of the common equivalence notions.
+The part that still remains is how to construct the energy game
+such that it actually serves to inform us about distinctions between processes.
+Here it will suffice to briefly recapitulate the rules that are used to
+construct the game graph.
+A more extensive justification for them is provided in~\cite{bisping2023process}.
+
+The game graph for an transition system
+$(\mathsf{Proc}, \mathsf{Act}, {\rightarrow})$
+is constructed around three types of game positions:
+
+\begin{itemize}
+    \item Attacker positions ${(p, Q)}_a \in G_a$
+    \item Attacker clause positions ${(p, q)}_a^{\scriptscriptstyle\land} \in G_a$
+    \item Defender positions ${(p, Q, Q_*)}_d \in G_d$
+\end{itemize}
+
+$p, q \in \mathsf{Proc}$ and $Q, Q_* \subseteq \mathsf{Proc}$.
+The graph is induced by the following rules,
+which define the edge relation $E$ as well as the update weights $w$.
+The transition over sets, $Q \xrightarrow{\alpha} Q'$,
+is defined as
+$Q' \colonequals \{q' \in \mathsf{Proc} \mid
+    \exists q \in Q\,.\,q \xrightarrow{\alpha} q'\}$.
+
+
+\begin{table}[h!]
+\centering
+
+\begin{tabular}{@{}l@{\hskip 8pt}l@{\hskip 5pt}l l@{}}
+    \toprule
+    Position &Update &Next Position &Condition \\
+    \midrule
+    ${(p, Q)}_a$ &$(-1, 0, 0, 0, 0, 0)$ &${(p', Q')}_a$
+        &$p \xrightarrow{\alpha} p', Q \xrightarrow{\alpha} Q', p' \notin Q'$ \\
+    ${(p, Q)}_a$ &$(0, -1, 0, 0, 0, 0)$ &${(p, Q \setminus Q_*, Q_*)}_d$
+        &$Q_* \subsetneq Q, Q_* \in \mathcal{Q}$ \\
+    ${(p, Q, Q_*)}_d$ &$(\mathrm{min}_{\{1, 3\}}, 0, 0, 0, 0, 0)$ &${(p, Q_*)}_a$
+        &$Q_* \neq \emptyset$ \\
+    ${(p, Q, Q_*)}_d$ &$(0, 0, 0, \mathrm{min}_{\{3, 4\}}, 0, 0)$
+        &${(p, q)}_a^{\scriptscriptstyle\land}$
+        &for $q \in Q$ \\
+    ${(p, q)}_a^{\scriptscriptstyle\land}$
+        &$(\mathrm{min}_{\{1, 4\}}, 0, 0, 0, 0, 0)$
+        &${(p, \{q\})}_a$ \\
+    ${(p, q)}_a^{\scriptscriptstyle\land}$
+        &$(\mathrm{min}_{\{1, 5\}}, 0, 0, 0, 0, -1)$
+        &${(q, \{p\})}_a$ \\
+    \bottomrule
+\end{tabular}
+\end{table}
+
+These rules already contain some optimizations that reduce the final game graph
+size without affecting the results.
+Defender positions are limited to cases
+${(p, Q \setminus Q_*, Q_*)}_d$ with
+$Q_* \in \mathcal{Q} \colonequals
+\big\{\emptyset,
+    \{q \in Q \mid \mathcal{I}(p) \subseteq \mathcal{I}(q)\},
+    \{q \in Q \mid {\mathcal{I}(p) \supseteq \mathcal{I}(q)}\},
+    \{q \in Q \mid \mathcal{I}(p) =         \mathcal{I}(q)\}
+\big\}$,
+where $\mathcal{I}(p)$ is the set of enabled actions of $p$.
+This restriction to at most four different partitions
+based on the enabled actions is called the
+\enquote{clever spectroscopy game} in~\cite{bisping2023process}.
+Generating defender positions ${(p, \emptyset, Q)}_d$ from ${(p, Q)}_a$
+is also not required,
+because their only successor is ${(p, Q)}_a$ again.
+That loop does not influence the final winning budgets,
+therefore the partitions $Q_*$ are limited to strict subsets of $Q$.
+
+The meaning behind an attacker position ${(p, Q)}_a$ is roughly
+that the attacker wants to distinguish $p$ from all processes in $Q$.
+The game graph is typically seeded with one or more attacker positions
+in the form ${(p, \{q\})}_a$.
+Starting from there the graph is then recursively built up
+using the rules above.
+Finally, the winning budgets for a starting position,
+$W({(p, \{q\})}_a)$,
+are exactly the costs required to distinguish $p$ and $q$.
+
+It follows that attack positions ${(p, Q)}_a$ with $p \in Q$ can be left out,
+since it is impossible to distinguish $p$ from itself.
+This means the attacker can never win starting from such a position,
+thus not contributing any winning budgets to other positions either.
