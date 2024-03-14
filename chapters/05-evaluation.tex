@@ -1,4 +1,44 @@
+This chapter will investigate the extent at which GPU-acceleration was able to
+speed up execution of the spectroscopy algorithm.
+Benchmarks were conducted to compare the performance of the new,
+parallelized program \texttt{gpuequiv}
+with the original implementation of the same algorithm by Bisping,
+created alongside~\cite{bisping2023process}.
+We will further look into what was done to verify the correctness of the GPU
+implementation.
+
 \section{Benchmarks}
+
+The performance of the implementation was assessed by running it on files from
+the \enquote{Very Large Transition System Benchmark Suite} (VLTS)~\cite{vlts},
+which, as the name suggests,
+includes transition systems with large numbers of states.
+For the benchmark, the task is to find the equivalences between \emph{all}
+process pairs within a transition system.
+The energy game is constructed to include all process pairs that we want to
+compare,
+but there are some very impactful reductions we can apply to end up with
+significantly less than $|\mathsf{Proc}|^2$ starting positions.
+
+Firstly, we can minimize the LTS by consolidating bisimilar processes.
+The bisimulation of an LTS can be computed quite efficiently---certainly much
+faster than the full spectroscopy algorithm---with the help of a procedure
+based around partition refinement~\cite{Blom2002}.
+That way we end up with a smaller transition system with just one process for
+each bisimulation class of the original system.
+Because bisimilarity is already the strongest notion of equivalence,
+all processes within a bisimulation class must behave the same for any
+equivalence comparison,
+so there is no information lost by performing this reduction step.
+
+Secondly,
+we can reduce the search space by inspecting the other end of the spectrum.
+If two process already aren't enabledness-equivalent,
+then none of the other equivalences can hold either,
+making any further spectroscopy redundant.
+Comparing the enabled actions of two processes is trivially easy,
+so any starting positions comparing processes with distinct action sets
+can simply be discarded.
 
 \begin{table}[htpb]
     \centering
@@ -36,3 +76,5 @@
         \bottomrule
     \end{tabular}
 \end{table}
+
+\section{Correctness}
