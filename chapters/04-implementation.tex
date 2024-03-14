@@ -124,7 +124,8 @@ This workflow is sketched out in Figure~\ref{fig:attack}.
 \begin{center}
 \begin{tikzpicture}
     \node[rectangle,draw] (start_node) {\large{$g$}};
-    \node (successor1) [right=of start_node,label=above:successors] {$g_1$};
+    \node (successor1) [right=of start_node] {$g_1$};
+    \node (l_successors) [above=2.7mm] at (successor1) {successors};
 
     % Energies of successors
     \node (energy1_1) [right=of successor1] {$e_{g_1,1}$};
@@ -144,10 +145,6 @@ This workflow is sketched out in Figure~\ref{fig:attack}.
     \node (updated2_1) [right=of energy2_1] {$e_{g_2,1}'$};
     \node (updated2_2) [right=of energy2_2] {$e_{g_2,2}'$};
     \node (udots2) at (updated2_2 |- dots2) {\rvdots};
-    % Include energies of g itself
-    %\node (energyg_1) [below] at (udots2.south) {$e_{g,1}$};
-    %\node (energyg_2) [below] at (energyg_1.south) {$e_{g,2}$};
-    %\node (udots3) [below] at (energyg_2.south) {\rvdots};
 
     % Minimized energies
     \node (minimal1) [right=14mm of udots1.north] {$e_1^*$};
@@ -169,18 +166,30 @@ This workflow is sketched out in Figure~\ref{fig:attack}.
     \draw[->] (energy2_1) -- (updated2_1);
     \draw[->] (energy2_2) -- (updated2_2);
     \draw[->] (energy2_2.east |- dots2) -- (updated2_2.west |- udots2);
-    % Energies from g
-    %\draw[->,shorten >= 4mm] (start_node.south) |-
-    %    node [near end,below] {energies of $g$}
-    %    (energyg_2.west);
 
     % Diagonal lines suggesting the reduction to minimal energies
     \draw[thick] (updated1_1.east |- udots2.south) -- (minimal1.west |- mdots.south);
     \draw[thick] (updated1_1.north east) -- (minimal1.north west);
-    \node (l_minimize) [right=7mm of l_update] {minimize};
+    \node (l_minimize) [base right=7mm of l_update] {minimize};
+
+    % CPU/GPU labels
+    \node (cpu) at (start_node |- dots_successors.south) {CPU};
+    \node (gpu) at (minimal1 |- cpu) {GPU};
+
+    % Background
+    \begin{scope}[on background layer]
+        \fill[black!60!blue!7]
+            (cpu.west |- l_minimize.north) rectangle
+            ([xshift=-1mm] energy2_2.east |- cpu.south);
+        \fill[black!30!red!15]
+            ([xshift=-1mm] energy2_2.east |- cpu.south) rectangle
+            (gpu.east |- l_minimize.north);
+    \end{scope}
 \end{tikzpicture}
 \end{center}
-\caption{Data flow for processing Attack positions}%
+\caption{Data flow for processing an Attacker position $g$.
+    Task distribution between CPU and GPU is also marked.
+}%
 \label{fig:attack}
 \end{figure}
 
@@ -585,14 +594,15 @@ which could not be efficiently parallelized for various reasons.
 Ideally, most of the data needed during the algorithm would stay on the GPU,
 so that less data needs to be copied between GPU and CPU memory.
 But currently, the energy sets for each position reside in CPU memory.
-Only the energies needed in each iteration are sent over to the GPU,
+Only the energies needed in the current iteration are sent over to the GPU,
 and the resulting energy sets are then read back and saved.
+This distribution of tasks is outlined in Figure~\ref{fig:attack}.
 Keeping the energy sets in GPU memory instead would require some sort of
 dynamic memory allocation,
 since the size of the energy sets can grow almost arbitrarily
 and the order in which energy sets are changed depends on the structure of the
 graph.
-There exist some approaches to handle dynamic data like that on a GPU,
+Some approaches exist to handle dynamic data like that on a GPU,
 for example the \emph{Hornet} data structure by \textcite{Busato2018}.
 But its high design complexity puts that out of scope for this work.
 
@@ -603,7 +613,7 @@ The generated graph is again a highly irregular data structure and
 even parallelizing only the most critical parts couldn't achieve a speedup.
 The fact that the positions themselves contain arbitrarily-sized sets of
 processes doesn't help either.
-In a test of only generating a large number defense positions,
+In a test of only generating a large number of defense positions,
 the shader took noticeably more time than a pure CPU-implementation of the same
 process.
 
