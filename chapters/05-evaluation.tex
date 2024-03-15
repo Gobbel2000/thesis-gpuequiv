@@ -64,7 +64,7 @@ All benchmarks were run on the same machine with an AMD 5800X processor,
 
 \begin{table}[htpb]
     \centering
-    \caption{Benchmarks for finding all equivalences in an LTS.
+    \caption{Benchmarks for finding all equivalences in an LTS\@.
         The last column shows just the time that \texttt{gpuequiv} spent
         processing the created energy game,
         excluding the time needed to generate the game.
@@ -103,5 +103,48 @@ All benchmarks were run on the same machine with an AMD 5800X processor,
         \bottomrule
     \end{tabular}
 \end{table}
+
+A few notable things can be gathered from the data in
+Table~\ref{tab:benchmarks}.
+Most importantly, the GPU-accelerated version could in fact achieve
+a clear and significant reduction in runtime,
+with 10--20x speedups on the larger inputs.
+This can mostly be attributed to the high degree of parallelization provided by
+the GPU,
+but many other factors are also at play.
+These benchmarks can not answer the question as to how far one could get with
+a purely CPU-based optimized implementation.
+
+Looking at the game graph sizes in relation to the corresponding LTS sizes
+gives an impression for how quickly the game graph can explode
+and how its size presents the main challenge for any scalable implementation of
+the spectroscopy algorithm.
+The size of the game is not only dependent on the number of processes in the
+input LTS,
+but also on its structural properties,
+such as how much non-determinism it exhibits
+(a process is non-deterministic if it has multiple transitions with the same
+action).
+This explains why the game graph for \texttt{cwi\_1\_2} is much larger
+than the game graph for \texttt{vasy\_10\_56},
+even though the latter has almost twice as many states after minimization.
+The LTS \texttt{vasy\_25\_25} is a curiosity
+because it produces an empty game graph.
+This is due to the fact that each processes in this system has a transition
+with a unique action,
+so there is not a single enabledness-equivalent process pair.
+Therefore there are no starting positions for the game graph and we already
+know that no equivalence holds anywhere in the system.
+
+The LTS \texttt{vasy\_18\_73} could not be computed by either implementation
+because of memory constraints.
+\texttt{gpuequiv} created the energy game in 112 seconds,
+but the graph was slightly too large to fit into a GPU buffer:
+as mentioned in Section~\ref{subsec:hw_limits},
+the largest graph we can load has 536\,870\,911 edges.
+Unfortunately that means that,
+when looking at this set of benchmarks,
+we could not achieve higher scalability by processing larger transition systems
+than before.
 
 \section{Correctness}
