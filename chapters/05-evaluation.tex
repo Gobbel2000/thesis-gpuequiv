@@ -40,9 +40,35 @@ Comparing the enabled actions of two processes is trivially easy,
 so any starting positions comparing processes with distinct action sets
 can simply be discarded.
 
+The benchmark results are listed in Table~\ref{tab:benchmarks}.
+The first column lists the name of the transition system.
+Except for \texttt{peterson}, all systems originate from the VLTS Benchmark
+Suite.
+Next, the number of processes and bisimulation classes ($\sim_B$) is listed,
+where $\sim_B$ represents the number of processes left after minimization.
+A better metric of the input size for estimating the runtime of the algorithm
+is the size of the game graph.
+The number of positions and moves are listed.
+Finally, the last three columns contain the runtimes of both implementations in
+seconds.
+The original CPU-based implementation written in the Scala programming
+language as part of~\cite{bisping2023process} is listed first,
+next to it the runtimes of the GPU-accelerated version \texttt{gpuequiv}.
+Both measurements include everything from generating the energy game until
+all winning energies are computed, but not the initial minimization step.
+The last column lists just the time spent by \texttt{gpuequiv} solving the
+energy game, which is where all GPU-computations are situated at.
+
+All benchmarks were run on the same machine with an AMD 5800X processor,
+32GB of RAM and an AMD RX 6700XT graphics card with 12GB of VRAM\@.
+
 \begin{table}[htpb]
     \centering
-    \caption{Benchmarks}%
+    \caption{Benchmarks for finding all equivalences in an LTS.
+        The last column shows just the time that \texttt{gpuequiv} spent
+        processing the created energy game,
+        excluding the time needed to generate the game.
+    }%
     \label{tab:benchmarks}
     \small
     \begin{tabular}{@{}l
