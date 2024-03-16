@@ -52,16 +52,16 @@ However, as of the time of writing, the WebGPU specification is still in
 development and full browser support is not yet available%
 \footnote{\url{https://github.com/gpuweb/gpuweb/wiki/Implementation-Status}}.
 
-For the GPU-code, this work uses \emph{wgpu}, an implementation of the WebGPU
+For the GPU-code, this work uses \texttt{wgpu}, an implementation of the WebGPU
 standard written in the Rust programming language.
-Applications using wgpu can both run natively, directly interfacing with the
+Applications using \texttt{wgpu} can both run natively, directly interfacing with the
 operating system's graphics API,
 or within a webpage through WebAssembly%
 \footnote{WebAssembly is a sort of machine code format that many programming
 languages, including Rust, can be compiled into
 and then be executed by a web page.},
 interfacing with the browser's WebGPU interface.
-The Firefox browser even uses wgpu itself to implement WebGPU\@.
+The Firefox browser even uses \texttt{wgpu} itself to implement WebGPU\@.
 
 
 \section{Parallel Computing Model of a GPU}\label{sec:gpu_model}

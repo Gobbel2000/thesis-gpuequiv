@@ -212,4 +212,45 @@ CSR sparse matrix format for representing graph in the GPU.},
   url          = {https://www.w3.org/TR/2024/WD-WGSL-20240220/},
 }
 
+@Article{Bisping2022,
+  author       = {Bisping, Benjamin and Jansen, David N. and Nestmann, Uwe},
+  date         = {2022-08},
+  journaltitle = {Logical Methods in Computer Science},
+  title        = {Deciding {All} {Behavioral} {Equivalences} at {Once}: {A} {Game} for {Linear}-{Time}--{Branching}-{Time} {Spectroscopy}},
+  doi          = {10.46298/lmcs-18(3:19)2022},
+  issn         = {1860-5974},
+  volume       = {Volume 18, Issue 3},
+  abstract     = {We introduce a generalization of the bisimulation game that finds distinguishing Hennessy-Milner logic formulas from every finitary, subformula-closed language in van Glabbeek's linear-time--branching-time spectrum between two finite-state processes. We identify the relevant dimensions that measure expressive power to yield formulas belonging to the coarsest distinguishing behavioral preorders and equivalences; the compared processes are equivalent in each coarser behavioral equivalence from the spectrum. We prove that the induced algorithm can determine the best fit of (in)equivalences for a pair of processes.},
+  publisher    = {Episciences.org},
+  shorttitle   = {Deciding {All} {Behavioral} {Equivalences} at {Once}},
+}
+
+@Article{Martens2023,
+  author    = {Jan Martens and Groote, {Jan Friso} and Haak, {Lars B.van den} and Pieter Hijma and Anton Wijs},
+  date      = {2023-04},
+  title     = {Linear parallel algorithms to compute strong and branching bisimilarity},
+  doi       = {10.1007/s10270-022-01060-7},
+  issn      = {1619-1366},
+  number    = {2},
+  pages     = {521--545},
+  volume    = {22},
+  abstract  = {We present the first parallel algorithms that decide strong and branching bisimilarity in linear time. More precisely, if a transition system has n states, m transitions and | Act| action labels, we introduce an algorithm that decides strong bisimilarity in O(n+ | Act|) time on max (n, m) processors and an algorithm that decides branching bisimilarity in O(n+ | Act|) time using up to max (n2, m, | Act| n) processors.},
+  journal   = {Software and Systems Modeling},
+  keywords  = {Branching bisimulation, Parallel algorithms, PRAM, RCPP, Strong bisimulation},
+  publisher = {Springer},
+}
+
+@InProceedings{Wijs2023,
+  author    = {Anton Wijs and Muhammad Osama},
+  booktitle = {Model Checking Software - 29th International Symposium, SPIN 2023, Proceedings},
+  date      = {2023-05},
+  title     = {GPUexplore 3.0: GPU Accelerated State Space Exploration for Concurrent Systems with Data.},
+  doi       = {10.1007/978-3-031-32157-3_11},
+  editor    = {Georgiana Caltais and Christian Schilling},
+  pages     = {188--197},
+  series    = {Lecture Notes in Computer Science (including subseries Lecture Notes in Artificial Intelligence and Lecture Notes in Bioinformatics)},
+  abstract  = {GPUexplore 3.0 is an explicit state space exploration tool that runs entirely on a graphics processing unit (GPU), and supports models of concurrent systems with data variables. We discuss its workflow and modelling language, present several design decisions regarding work distribution and retrieval, and experimentally evaluate the impact of those decisions. Our tool achieves acceleration up to 115 × and 28 × compared to single- and four-core LTSmin, respectively. It currently checks for deadlocks, with verification of temporal logic formulae planned for the near future.},
+  keywords  = {Explicit state space exploration, GPU, finite-state machines},
+}
+
 @Comment{jabref-meta: databaseType:biblatex;}

@@ -1,6 +1,4 @@
-At the center of this contribution is a parallel GPU-implementation%
-\footnote{The code can be found at \url{https://github.com/Gobbel2000/gpuequiv}.
-This document refers to version 1.0.0.}
+At the center of this contribution is a parallel GPU-implementation
 of the energy game introduced in Section~\ref{sec:energy_games}.
 Given a game graph as input, it calculates the energy budgets
 required for the attacker to win the game.
@@ -10,7 +8,7 @@ A. Goeminne, which more generally covers
 \enquote{Multi-Weighted Reachability Games},
 but presents essentially the same algorithm structure.
 
-\section{Parallelizing the Algorithm}
+\section{Parallelizing the Algorithm}\label{sec:parallelization}
 
 % First, definitions that are also used outside the algorithm
 \SetKwData{Updated}{updated}
@@ -362,7 +360,7 @@ Each minimal combination $c_i$ can now be shifted left by $p_i$ steps to index
 $i - p_i$.
 
 
-\section{Data Layout}
+\section{Data Layout}\label{sec:data}
 
 An efficient implementation of the processes described above requires some
 thought to be put into the data layout,
