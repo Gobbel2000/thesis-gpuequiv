@@ -1,1 +1,53 @@
-% Conclusion chapter
+The idea of this work was to speed up the algorithm to find all equivalences
+within a transition system~\cite{bisping2023process} by running it highly
+parallelized on a GPU\@.
+This objective was realized in the development of the open source software
+library \texttt{gpuequiv}.
+It can be used to find all equivalences notions of the
+linear-time--branching-time spectrum~\cite{glabbeek1990spectrum}
+that equate two or more processes.
+This was accomplished with a GPU-accelerated algorithm for processing energy
+games that can also be utilized for energy games in general,
+not just in the context of the spectroscopy algorithm.
+By building on the new WebGPU specification with the implementation of
+\texttt{wgpu},
+the code can not only run on all major platforms,
+but even inside web browsers.
+
+We have shown in Chapter~\ref{ch:implementation} how parallelization could be
+applied to the spectroscopy algorithm.
+It was found that large parts of work still had to be done on the CPU,
+in particular when dealing with the dynamic graph data structures.
+For example generation of the energy game graph had to be done full by the CPU
+for these reasons.
+The size of the game graph would have made it an enticing target for
+optimization,
+but in the end the time spent on generating the game by the CPU does not
+outweigh the more complex solving of the resulting energy game.
+
+The most critical parts of solving the energy game could successfully be
+computed in parallel on the GPU\@.
+This resulted in an overall significant uplift in performance compared to the
+previous sequential implementation of~\cite{bisping2023process},
+as shown by the benchmarks in Table~\ref{tab:benchmarks}:
+The time required to process one particularly large transition system is
+reduced from nearly 4 minutes down to just 18 seconds.
+
+Even though care was taken to store data in a highly compressed format
+(see~\ref{sec:data}),
+the sheer size of the game graph needed to process larger inputs still
+ended up exceeding memory limits.
+It was therefore not possible to meaningfully increase scalability
+over the original implementation.
+
+\subsubsection{Further work}
+
+While we have focused on the spectrum that was used
+in~\cite{bisping2023process},
+there is another version of the algorithm that includes many more equivalences
+by accounting for silent steps~\cite{bisping2023silent}.
+This requires a larger,
+more complex game graph and energy values in 8 dimensions instead of 6.
+Supporting these additional equivalences would be a way of expanding the
+functionality of \texttt{gpuequiv}.
+And there is of course always room for further optimization.
