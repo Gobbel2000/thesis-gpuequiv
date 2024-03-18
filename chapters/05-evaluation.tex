@@ -160,15 +160,12 @@ to validate the usability of the library for energy games in general.
 
 Along with the benchmarks, there are some output values included
 in~\cite{bisping2023process},
-that could be used to verify the results of running the algorithm on the VLTS
+that can be used to verify the results of running the algorithm on the VLTS
 files.
 This includes the sizes of the equivalence quotients with regards to
 enabledness, trace-equivalence and simulation.
-When reproducing these values with \texttt{gpuequiv} however,
-some discrepancies came to light,
-especially around the numbers of enabledness classes.
-For example, with \texttt{vasy\_0\_1}, only 1 enabledness class is listed
-in~\cite{bisping2023process},
-but 3 are reported by \texttt{gpuequiv}.
-A manual investigation proved 3 to be the correct number in this case.
-The cause for these discrepancies could not be determined by this time.
+These values were reproduced with \texttt{gpuequiv}
+and when ensuring that both implementations perform the same operations,
+all numbers match up exactly.
+This gives a high confidence for the correctness of \texttt{gpuequiv},
+even for larger inputs.
