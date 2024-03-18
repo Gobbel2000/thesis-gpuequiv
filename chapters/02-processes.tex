@@ -476,12 +476,13 @@ $Q' \colonequals \{q' \in \mathsf{Proc} \mid
 \begin{table}[h!]
 \centering
 
-\begin{tabular}{@{}l@{\hskip 8pt}l@{\hskip 5pt}l l@{}}
+\begin{tabular}{l l l l}
     \toprule
     Position &Update &Next Position &Conditions \\
     \midrule
     ${(p, Q)}_a$ &$(-1, 0, 0, 0, 0, 0)$ &${(p', Q')}_a$
-        &$p \xrightarrow{\alpha} p', Q \xrightarrow{\alpha} Q', p' \notin Q'$ \\
+        &$p \xrightarrow{\alpha} p', Q \xrightarrow{\alpha} Q',$ \\
+      &&&$p' \notin Q', Q \neq \emptyset$ \\
     ${(p, Q)}_a$ &$(0, -1, 0, 0, 0, 0)$ &${(p, Q \setminus Q_*, Q_*)}_d$
         &$Q_* \subsetneq Q, Q_* \in \mathcal{Q}$ \\
     ${(p, Q, Q_*)}_d$ &$(\mathrm{min}_{\{1, 3\}}, 0, 0, 0, 0, 0)$ &${(p, Q_*)}_a$
@@ -533,3 +534,8 @@ It follows that attack positions ${(p, Q)}_a$ with $p \in Q$ can be left out,
 since it is impossible to distinguish $p$ from itself.
 This means the attacker can never win starting from such a position,
 thus not contributing any winning budgets to other positions either.
+If an attacker position ${(p, Q)}_a$ contains the empty set, $Q = \emptyset$,
+the attacker can win straight away by transitioning to
+${(p, \emptyset, \emptyset)}_d$, which has no further successors.
+No better costs can be achieved by considering further observations from $p$
+and transitioning to any position ${(p', \emptyset)}_a$.
