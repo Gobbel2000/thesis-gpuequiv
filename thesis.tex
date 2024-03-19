@@ -106,9 +106,56 @@
     \vspace*{4em}
 \end{titlepage}
 
-%\begin{abstract}
-%TODO Abstract
-%\end{abstract}
+\begin{abstract}
+    Recent advances have made it possible to decide all equivalences
+    of processes in a transition system with a single \emph{energy game}.
+    It computes subsets of formulas in the Hennessy--Milner logic,
+    represented by 6-dimensional energies,
+    which correlate to the various notions of equivalence in the
+    linear-time--branching-time spectrum.
+    In order to better cope with the exponential time complexity
+    of that algorithm,
+    this work presents \texttt{gpuequiv},
+    a highly parallelized, GPU-accelerated implementation
+    for solving the energy game,
+    aimed at being fast and scalable.
+    It is based on the new WebGPU API,
+    enabling it to run even inside a browser.
+
+    By parallelizing the crucial parts of the algorithm,
+    \texttt{gpuequiv} achieves a \mbox{10--20x} speedup on larger inputs
+    over previous, sequential implementations.
+    However, excessive memory requirements are still a problem when processing
+    very large transition systems.
+
+    % The same but in German
+    \vspace{4em}
+    \begin{center}
+        \subsubsection{Zusammenfassung}
+    \end{center}
+    Mithilfe eines kürzlich vorgestellten Verfahrens ist es möglich,
+    mit einem \emph{Energiespiel} alle Äquivalenzen zwischen Prozessen
+    in einem Transitionssystem zu berechnen.
+    Dabei werden alle Äquivalenzbegriffe eines Spektrums durch 6-dimensionale
+    Energietupel dargestellt,
+    welche jeweils eine Untermenge der Hennessy--Milner-Formeln aufspannen.
+    Dieser Algorithmus benötigt exponentielle Laufzeit,
+    daher war es das Ziel dieser Arbeit,
+    eine schnellere, skalierbare Implementierung durch Parallelisierung auf
+    einer GPU zu entwickeln.
+    Dies wurde in dem Programm \texttt{gpuequiv} realisiert,
+    welches mittels der neuen Browser-Schnittstelle WebGPU mit der GPU
+    interagiert,
+    was ein Ausführen selbst innerhalb von Webseiten ermöglicht.
+
+    Die kritischsten Bereiche des Algorithmus konnten erfolgreich parallel
+    berechnet werden,
+    was bei großen Eingaben zu einer 10--20-fachen
+    Verringerung der Laufzeit gegenüber bisherigen,
+    sequentiellen Implementierungen führt.
+    Allerdings erfordern größere Transitionssysteme immer noch schnell
+    übermäßig große Mengen an Speicher.
+\end{abstract}
 
 \tableofcontents
 
