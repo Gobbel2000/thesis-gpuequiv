@@ -4,35 +4,37 @@ an often recurring question is that of
 the behavioral similarity between processes in a transition system.
 There are many different ways in which two processes can be considered
 \emph{equivalent}.
-In an important step towards grasping this range of equivalences,
+In an important step towards grasping the range of equivalences,
 \textcite{glabbeek1990spectrum} collected the most relevant definitions in the
 so-called \emph{linear-time--branching-time spectrum}.
 Being able to compute these equivalences is relevant for applications like
-formal verification or better understanding complex systems.
+formal verification
+or for gaining a better understanding of complex systems.
 
 While algorithms for computing individual notions of equivalence
 have long existed (e.g.~\cite{Blom2002}),
 a process for deciding all equivalences of the spectrum at once
 was only recently developed
-by B. Bisping, D. Jansen and U. Nestmann~\cite{Bisping2022}.
-This algorithm was subsequently refined by \textcite{bisping2023process}
+by Bisping, Jansen and Nestmann~\cite{Bisping2022}.
+This algorithm is subsequently refined by \textcite{bisping2023process}
 where an \emph{energy game} is used for finding the equivalences.
-This helped in bringing the runtime and memory usage of the algorithm down
+This helps in bringing the runtime and memory usage of the algorithm down
 to a more practical range,
 but it is still very expensive to execute.
 On larger inputs the implementation can easily run for the excess of several
 minutes or even run out of memory.
 
 % Contribution
-This work aims to improve on that by utilizing the parallel computing power of
-modern GPUs.
+This work aims to improve on that performance by utilizing the parallel
+computing power of modern GPUs.
 The idea is that large parts of the algorithm can be computed in parallel,
 which, if successful, could result in a significant reduction in runtime.
-This resulted in the development of a new,
-GPU-accelerated implementation of the algorithm from~\cite{bisping2023process}:
-\texttt{gpuequiv}%
+To that end, the contribution of this thesis is the development
+of \texttt{gpuequiv}%
 \footnote{The code can be found at \url{https://github.com/Gobbel2000/gpuequiv}.
-This document refers to version 1.0.0.}.
+This document refers to version 1.0.0.},
+a new, GPU-accelerated implementation
+of the algorithm by \textcite{bisping2023process}.
 It processes the most critical parts of the energy game in a highly
 parallelized fashion,
 with the goal of making the spectroscopy algorithm faster and more scalable.
@@ -41,8 +43,8 @@ games.
 
 For the task of interfacing with the GPU,
 the WebGPU API is used.
-It is a new web standard that is currently still in development,
-with the goal of providing access to a system's GPU in a web browser.
+WebGPU is a new web standard, which currently is still in development,
+with the goal of providing access to a system's GPU from web browsers.
 By calling into WebGPU through the Rust library \texttt{wgpu} it is possible to
 run the code both natively as well as from within a web site using WebAssembly.
 This allows for very high platform-independence and portability.
@@ -52,16 +54,19 @@ the GPU shaders are written in the WebGPU shading language WGSL\@.
 
 \subsubsection{Related work}
 
-As will be shown later on,
-the broad structure for processing the energy game
+The broad structure for processing the energy game
 is similar to how a lot of other graph algorithms work
 by traversing the game graph in a breadth-first manner.
-There is already a lot of research behind running this category of graph
+There is already a lot of research on running this category of graph
 algorithms on a GPU~\cite{Merrill2015,Busato2018,Hijma2023}.
-There are even some similar projects in the context of transition systems,
-for example a parallel algorithm for computing bisimilarity~\cite{Martens2023}
-or a tool for detecting deadlocks in a transition system~\cite{Wijs2023},
+Similar projects exist in the context of transition systems,
+for example a parallel algorithm for computing bisimilarity
+by \textcite{Martens2023}
+or a tool for detecting deadlocks in a transition system
+by \textcite{Wijs2023},
 both running on a GPU\@.
+However none of them give information
+regarding the entire equivalence spectrum.
 
 \subsubsection{Structure}
 
@@ -76,7 +81,7 @@ GPU programming.
 This includes details on the technology stack used
 and the choice of WebGPU among other GPU frameworks,
 followed by a short overview on what it means
-to program on a GPU (\ref{sec:gpu_model}).
+to program for a GPU (\ref{sec:gpu_model}).
 
 The actual GPU-based implementation of the spectroscopy algorithm is explained
 in Chapter~\ref{ch:implementation}.
@@ -87,4 +92,4 @@ that were used to efficiently handle the data (\ref{sec:data}).
 Finally, in Chapter~\ref{ch:benchmarks} we will evaluate the performance
 gained by parallelization with a series of benchmarks that were
 conducted both on \texttt{gpuequiv} as well as on the original implementation
-for~\cite{bisping2023process}.
+by \textcite{bisping2023process}.

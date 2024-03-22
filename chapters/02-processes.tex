@@ -1,12 +1,12 @@
-With the goal of introducing the algorithm for finding equivalences between
+With the goal of presenting the algorithm for finding equivalences between
 processes,
 this chapter will introduce the theoretical concepts that this work is based on.
 First and foremost this includes an explanation and definition
 of the models we use to represent processes.
 Further we will explore different ways to compare two processes and how that
 leads us to the equivalence spectrum~\cite{glabbeek1990spectrum}.
-Finally we will outline how the algorithm works,
-that gives us a multifaceted view of the relation of two processes by testing
+Finally we will outline the spectroscopy algorithm,
+which gives us a multifaceted view of the relation of two processes by testing
 multiple of those equivalences at once~\cite{bisping2023process}.
 
 
@@ -25,7 +25,7 @@ constitutes the observable behavior of the machine,
 while its current state defines what actions it can do next.
 Such a structure is called a \emph{Labeled transition system}
 or \emph{LTS} for short~\cite{reactive_systems}.
-Figure~\ref{fig:example_lts} gives an example for how the graph of an LTS might
+Figure~\ref{fig:example_lts} gives an example for what the graph of an LTS might
 look like.
 
 \begin{definition}[Labeled transition system~\cite{reactive_systems}]
@@ -92,12 +92,13 @@ A sequence of actions $\alpha_1, \ldots, \alpha_k \in \mathsf{Act}^*$
 is a trace of a process $p$ if
 $p \xrightarrow{\alpha_1} p_1 \xrightarrow{\alpha_2} p_2
 \ldots p_{k-1} \xrightarrow{\alpha_k} p_k$.
-The function $Traces(p)$ produces the set of all traces for a process $p$.
+The function $\mathit{Traces}(p)$ produces the set of all traces
+for a process $p$.
 We now call two processes $p$ and $q$ \emph{trace-equivalent}
-if $Traces(p) = Traces(q)$~\cite{reactive_systems}.
+if $\mathit{Traces}(p) = \mathit{Traces}(q)$~\cite{reactive_systems}.
 
 For example, in Figure~\ref{fig:example_lts} the traces of $p_0$ are
-$Traces(p_0) = \{a, ab, ac\}$.
+$\mathit{Traces}(p_0) = \{a, ab, ac\}$.
 The process $p_4$ can produce exactly the same traces,
 so $p_0$ and $p_4$ are trace-equivalent.
 However it is not difficult to see some difference in the graphs of both
@@ -115,7 +116,8 @@ for a process $p$.
 Trace-equivalence, as well as many other equivalences,
 can also be seen directionally.
 If one only cares about whether all traces of $p$ are also traces in $q$ and
-not the other way around---meaning $Traces(p) \subseteq Traces(q)$---we get a
+not the other way around---meaning
+$\mathit{Traces}(p) \subseteq \mathit{Traces}(q)$---we get a
 preorder instead of an equivalence relation where $p$ is preordered by $q$
 if the condition holds.
 
@@ -469,7 +471,7 @@ The graph is induced by the following rules,
 which define the edge relation $E$ as well as the update weights $w$.
 The transition over sets, $Q \xrightarrow{\alpha} Q'$,
 is defined as
-$Q' \colonequals \{q' \in \mathsf{Proc} \mid
+$Q' = \{q' \in \mathsf{Proc} \mid
     \exists q \in Q\,.\,q \xrightarrow{\alpha} q'\}$.
 
 

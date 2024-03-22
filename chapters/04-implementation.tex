@@ -1,11 +1,10 @@
-At the center of this contribution is a parallel GPU-implementation
+At the center of this contribution is a parallel GPU implementation
 of the energy game introduced in Section~\ref{sec:energy_games}.
-Given a game graph as input, it calculates the energy budgets
+Given a game graph as input, the program calculates the energy budgets
 required for the attacker to win the game.
-This algorithm was described in~\cite{bisping2023process} as part of the
-spectroscopy algorithm, as well as in~\cite{brihaye2023multi} by T. Brihaye and
-A. Goeminne, which more generally covers
-\enquote{Multi-Weighted Reachability Games},
+This algorithm was described by \textcite{bisping2023process} as part of the
+spectroscopy algorithm, as well as by \textcite{brihaye2023multi}
+which focuses on \enquote{Multi-Weighted Reachability Games} in general,
 but presents essentially the same algorithm structure.
 
 \section{Parallelizing the Algorithm}\label{sec:parallelization}
@@ -20,9 +19,9 @@ but presents essentially the same algorithm structure.
     \SetKwData{New}{new\_energies}
     \SetKwFor{pFor}{for parallel}{do}{end}
 
-    $\Start = \{g \in G_d \mid \mathrm{Succ}(g) = \emptyset\}$\;
+    $\Start = \{g \in G_d \mid \mathrm{Succ}(g) = \emptyset\}$\;\nllabel{ln:start}
     \lFor{$g \in \Start$}{$\Energies[g] = \{\mathbf{0}\}$}
-    \lFor{$g \in G \setminus \Start$}{$\Energies[g] = \emptyset$}
+    \lFor{$g \in G \setminus \Start$}{$\Energies[g] = \emptyset$}\nllabel{ln:empty}
     $\Visit = \bigcup_{g \in \Start} \mathrm{Pred}(g)$\;
 
     \BlankLine
@@ -34,15 +33,15 @@ but presents essentially the same algorithm structure.
             }
 
             \BlankLine
-            \eIf(\tcp*[h]{attack positions}){$g \in G_a$}{
+            \eIf(\tcp*[h]{attack positions}){$g \in G_a$\nllabel{ln:new_start}}{
                 $\New = \mathrm{Min} \left(
                     \bigcup_{g' \in \mathrm{Succ}(g)} \upclosed \Updated[g']
                 \right)$
             } (\tcp*[h]{defend positions}) {
                 $\New = \mathrm{Min} \left(
                     \bigcap_{g' \in \mathrm{Succ}(g)} \upclosed \Updated[g']
-                \right)$
-            }
+                \right)$\nllabel{ln:intersection}
+            }\nllabel{ln:new_end}
 
             \BlankLine
             \If{$\New \neq \Energies[g]$}{
@@ -62,36 +61,36 @@ In order to calculate all the winning budgets,
 we start at the end of the game graph and work our way backwards.
 At all defend positions with no successors the attacker immediately wins,
 so we can set the energies required for the attacker to win there to the
-0-valued energy tuple (lines 1--3).
+0-valued energy tuple (lines~\ref{ln:start}--\ref{ln:empty}).
 In every iteration a set of positions is visited
 and its associated energies are updated.
 The next iteration visits the predecessors of all positions whose energies
-have changed in the previous iteration, thus walking backwards in the game
-graph in a breadth-first manner. Once an iteration caused no changes to the
-energies, the algorithm terminates.
+have changed in the previous iteration,
+thus walking backwards in the game graph in a breadth-first manner.
+Once an iteration causes no changes to the energies, the algorithm terminates.
 
 Walking backwards requires using the inverse update function
 $\mathsf{upd}^{-1}$.
 Calling it on an energy $e$ and an update $u$, $\mathsf{upd}^{-1}(e, u) = e'$,
-produces the lowest energy tuple $e'$, such that $\mathsf{upd}(e', u) \geq e$.
-Decrements (-1) are simply subtracted instead of added,
-but $\mathrm{min}$-updates need to instead create the maximum and on slightly
-different indices:
+produces the least energy tuple $e'$, such that $\mathsf{upd}(e', u) \geq e$.
+Decrements ($-1$) are simply subtracted instead of added,
+but for $\mathrm{min}$-updates, a maximum needs to be created instead:
 For an update element $\mathrm{min}_{\{k, i\}}$ at position $u_k$,
 we need to set $e'_i = \max(e_k, e_i)$,
 so that we correctly have $e_k = \min(e'_k, e'_i)$ in the other direction.
 For example,
-$\mathsf{upd}^{-1}((1, 0, 0), (\mathrm{min}_{\{1, 3\}}, 0, 0)) = (1, 0, 1)$
+$\mathsf{upd}^{-1}((1, 0), (\mathrm{min}_{\{1, 2\}}, 0)) = (1, 1)$
 is the lowest energy tuple that satisfies
-$\mathsf{upd}((1, 0, 1), (\mathrm{min}_{\{1, 3\}}, 0, 0)) = (1, 0, 1)
-    \geq (1, 0, 0)$
+$\mathsf{upd}((1, 1), (\mathrm{min}_{\{1, 2\}}, 0)) = (1, 1)
+    \geq (1, 0)$
 
-We achieve parallelization by visiting all positions in the visit list in
-parallel, but to fully take advantage of the massively multithreaded
-GPU-architecture, each position is further processed by multiple threads.
+We achieve parallelization by visiting all positions in the visit list
+in parallel.
+But to fully take advantage of the massively multithreaded
+GPU architecture, each position is further processed by multiple threads.
 
-The core of the algorithm lies in lines 11--15, where the upwards-closed sets of
-energies are either unioned or intersected.
+The core of the algorithm lies in lines~\ref{ln:new_start}--\ref{ln:new_end},
+where the upwards-closed sets of energies are either joined or intersected.
 Since both operations demand very different approaches,
 handling them in a single shader would inevitably incur high branch-divergence
 (see Section~\ref{sec:gpu_model}).
@@ -106,8 +105,9 @@ efficiently run on a GPU\@.
 
 \subsection{Attack shader: Union}\label{subsec:attack_shader}
 
-In order to calculate the union of the upwards-closed sets,
-we can simply unionize the minimal elements that the sets are represented by:
+In order to get the union of the upwards-closed sets,
+we can simply take the union of the minimal elements
+that the sets are represented by:
 
 \[\mathrm{Min} \left( \bigcup_{g' \in \mathrm{Succ}(g)} \upclosed \Updated[g'] \right) =
   \mathrm{Min} \left( \bigcup_{g' \in \mathrm{Succ}(g)}           \Updated[g'] \right)\]
@@ -271,8 +271,9 @@ their intersection can be obtained by taking the supremum of all their combinati
 
 In order to handle multiple sets, we iteratively apply that step,
 minimizing the result each time.
-This approach was proposed in~\cite{brihaye2023multi}.
-Line 14 of Algorithm~\ref{alg:energy_game} thus becomes more explicitly:
+This approach was proposed by \textcite{brihaye2023multi}.
+Line~\ref{ln:intersection} of Algorithm~\ref{alg:energy_game}
+thus becomes more explicitly:
 
 \begin{algorithm}[H]\label{alg:intersection}
     \DontPrintSemicolon
@@ -289,7 +290,7 @@ Line 14 of Algorithm~\ref{alg:energy_game} thus becomes more explicitly:
 \end{algorithm}
 
 % Direct approach
-The algorithm presented in~\cite{bisping2023process} does this a bit
+The algorithm presented by \textcite{bisping2023process} does this a bit
 differently by intersecting all sets at once.
 This requires producing combinations over all sets,
 whose number for a defense node $g \in G_d$ is given as
@@ -297,7 +298,7 @@ $\prod_{g' \in \mathrm{Succ}(g)} |\Energies[g']|$,
 which is exponential in the out-degree of $g$.
 For example, if a defense node had 10 successors with 5 energy tuples each,
 we would have to consider $5^{10} = 9\,765\,625$ combinations.
-In such cases the vast majority of these combinations will be superfluous and 
+In such cases the vast majority of combinations will be superfluous and
 the number of energy tuples left after minimization is usually in the single
 digits.
 
@@ -315,8 +316,8 @@ without essentially running through the entire algorithm,
 also makes it difficult to accurately dispatch the required amount of GPU
 threads.
 So instead of having one thread per combination,
-which would ideally distribute the workload,
-each position is statically allocated one workgroup of 64 threads.
+which would ideally distribute the workload like in the attack shader,
+each position is statically allocated one workgroup of 64 threads here.
 This means on smaller positions many threads may sit idle,
 while on larger positions the workgroup will have to perform the same
 operations multiple times in a loop to cover all combinations.
@@ -348,7 +349,7 @@ which is for each element the sum of all preceding elements:
 $p_i = \sum_{j = 0}^{i - 1} f_j$.
 
 Due to its usefulness, the prefix sum algorithm has been widely studied in
-relation to GPU-programming.
+relation to GPU programming.
 The implementation used is based on~\cite{Harris2011ParallelPS}.
 Again, while it can be done fairly easily within a workgroup,
 prefix sum for larger arrays across workgroups would require global
@@ -477,7 +478,7 @@ in~\cite{Delzanno2000}, where the minimal tuples are generated by the possible
 paths in a specially constructed graph.
 While that representation might allow for more optimized memory usage in some cases,
 it didn't seem worth the additional complexity of having to handle a graph structure.
-Particularly with regards to GPU-programming, a flat list of tuples is much
+Particularly with regards to GPU programming, a flat list of tuples is much
 easier to work with.
 
 In the case of this spectroscopy algorithm, we can significantly reduce the

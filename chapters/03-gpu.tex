@@ -2,14 +2,14 @@ The core contribution of this work is a GPU-accelerated implementation of the
 spectroscopy algorithm presented in~\cite{bisping2023process},
 using the new WebGPU standard.
 This chapter will give an overview on why WebGPU was chosen and how that
-standard came to be among other GPU-compute frameworks.
+standard came to be among other GPU compute frameworks.
 Further we will discuss the GPU programming model,
 how its massively parallelized architecture can be utilized
 and which challenges it raises.
 
-\section{WebGPU and the State of GPU-compute}
+\section{WebGPU and the State of GPU compute}
 
-As their name suggests, Graphical Processing Units (GPUs) were initially built
+As their name suggests, Graphics Processing Units (GPUs) were initially built
 to improve graphical processing capabilities of computer systems,
 serving as \emph{graphics accelerators}.
 At first they included mostly fixed-function hardware to run the usual
@@ -20,7 +20,8 @@ which was solved by running as much as possible in parallel in order to produce
 fluent frame rates.
 These graphics accelerators enabled real-time rendering performance far beyond
 what is possible on a general-purpose CPU,
-which is why their development was largely driven by the gaming industry.
+which is why their development was largely driven
+by the gaming industry~\cite{Patterson2016}.
 
 But already early on people recognized the potential of using the parallel
 GPU architecture not just for graphics rendering,
@@ -46,13 +47,13 @@ Instead of OpenGL, WebGPU is based on more advanced graphics APIs
 that expose modern GPU features:
 Vulkan for Linux and Windows, DX12 for Windows and Metal for Apple.
 General-purpose compute is one of the express features for WebGPU,
-thus providing a GPU-programming API that is not only fully
+thus providing a GPU programming API that is not only fully
 platform-independent, but will even be able to run in any web browser.
 However, as of the time of writing, the WebGPU specification is still in
 development and full browser support is not yet available%
 \footnote{\url{https://github.com/gpuweb/gpuweb/wiki/Implementation-Status}}.
 
-For the GPU-code, this work uses \texttt{wgpu}, an implementation of the WebGPU
+For the GPU code, this work uses \texttt{wgpu}, an implementation of the WebGPU
 standard written in the Rust programming language.
 Applications using \texttt{wgpu} can both run natively, directly interfacing with the
 operating system's graphics API,
@@ -77,25 +78,26 @@ by foregoing the hierarchical memory caches found on CPUs,
 memory access on GPUs is more optimized for throughput rather than
 latency~\cite{Patterson2016}.
 
-Following their origin from computer graphics, any kind program for a GPU is
+Following their origin from computer graphics, any kind of program for a GPU is
 called a \emph{shader}, although even within the rendering pipeline, shaders
 are used for far more than just shading the image.
-In the world of GPU-compute, the term \emph{kernel} is also frequently instead
-of \emph{shader}.
-Shaders are written in specific shader languages,
+In the world of GPU compute, the term \emph{kernel} is also frequently used
+instead of \emph{shader}.
+Shaders are written in specific shading languages,
 in our case that is the WebGPU Shading Language (WGSL),
 which was newly introduced with WebGPU\@.
 A single shader is executed by a configurable amount of GPU threads,
-whereas each thread can run slightly differently based on its thread index,
+whereas the computations done by each thread can vary slightly
+based on the thread index,
 which is available as a variable in the shader code.
 
 % Threads, Workgroups, Branching
 Threads are organized into \emph{workgroups},
 sometimes also called \emph{thread-blocks}.
 The size of a workgroup is configurable,
-but typically set to 64 threads.
+a typical number is 64 threads.
 This is relevant,
-because threads within a workgroup are tightly couple at the hardware level.
+because threads within a workgroup are tightly coupled at the hardware level.
 They execute the same instructions in lock-step,
 which means if one thread should perform a different calculation than another
 thread in the same workgroup,
