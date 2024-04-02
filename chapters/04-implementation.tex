@@ -223,18 +223,16 @@ Listing~\ref{lst:minimize}.
         The function \texttt{less\_eq} is shown in Listing~\ref{lst:less_eq}.},
     label=lst:minimize]
 let energy = energies[i]; // `i' is the thread ID
-var filter_out = 0;
+var is_minimal = 1;
 for (var j = e_start; j < e_end; j++) {
     let e2 = energies[j];
-    // Skip reflexive comparisons.
-    // When energies are equal,
-    // keep only those with higher index
+    // Skip reflexive comparisons. When energies are equal,
+    // keep only those with lower index.
     let eq = e2 == energy;
-    if j != i && ((eq && i < j) ||
+    if j != i && ((eq && i > j) ||
                   (!eq && less_eq(e2, energy))) {
         // Mark to be filtered out
-        filter_out = 1;
-        break;
+        is_minimal = 0;
     }
 }
 \end{lstlisting}
@@ -331,23 +329,20 @@ synchronization within a workgroup can easily be done.
 Synchronization is even required in order to properly implement
 Algorithm~\ref{alg:intersection}, in particular for the minimization step.
 
-\subsubsection{Compacting energies}
+\subsubsection{Compacting Energies}
 
 While the attack shader~(\ref{subsec:attack_shader}) avoids the need for
 synchronization by only flagging each energy on whether or not it is minimal,
 in this case we need to continue working with the minimal set in the next
 iteration.
-To that end it is necessary to compact the energy list by removing non-minimal
+This requires compacting the energy list by removing non-minimal
 entries and shifting all others to the left to fill any gaps.
-First, a list of flags for each combination is produced, like in the attack
-shader:
-If $[c_1, c_2, \ldots, c_n]$ is the list of combinations,
-we create the flags $[f_1, \ldots, f_n]$ where $f_i = 1$ if $c_i$ is not minimal
-and should be removed, otherwise $f_i = 0$.
-Next we calculate the prefix sums $[p_1, \ldots, p_n]$ of the flag list,
-which is for each element the sum of all preceding elements:
-$p_i = \sum_{j = 0}^{i - 1} f_j$.
 
+For this step, a parallel prefix sum is computed.
+Taking the prefix sum of an array of numbers $[a_1, \ldots, a_n]$
+results in an array $[p_1, \ldots, p_n]$ where each entry is the
+sum of all preceding elements:
+$p_i = \sum_{j = 0}^{i - 1} a_j$.
 Due to its usefulness, the prefix sum algorithm has been widely studied in
 relation to GPU programming.
 The implementation used is based on~\cite{Harris2011ParallelPS}.
@@ -355,10 +350,93 @@ Again, while it can be done fairly easily within a workgroup,
 prefix sum for larger arrays across workgroups would require global
 synchronization.
 
-These prefix sums now represent the number of non-minimal gaps to the left of
-each combination.
-Each minimal combination $c_i$ can now be shifted left by $p_i$ steps to index
-$i - p_i$.
+The way we use the prefix sum for compacting energy values is sketched out
+in Figure~\ref{fig:compacting}.
+First, a list of flags for each energy is produced, like in the attack shader:
+If an energy tuple is minimal, the flag is set to 1, otherwise to 0.
+By calculating the prefix sum of this array of flags,
+we end up with the number of minimal energies to the left of each element,
+which can be used as the new index to which all minimal energies are moved.
+
+\begin{figure}[htpb]
+\centering
+\begin{tikzpicture}[scale=0.6,thick]
+    % Energies
+    \draw (0, 0) node {$2, 2, 1$} +(-1, -.5) rectangle ++(1, .5);
+    \draw (2, 0) node {$2, 1, 1$} +(-1, -.5) rectangle ++(1, .5);
+    \draw (4, 0) node {$1, 0, 2$} +(-1, -.5) rectangle ++(1, .5);
+    \draw (6, 0) node {$2, 1, 1$} +(-1, -.5) rectangle ++(1, .5);
+    \draw (8, 0) node {$1, 2, 1$} +(-1, -.5) rectangle ++(1, .5);
+    \draw (10, 0) node {$2, 2, 2$} +(-1, -.5) rectangle ++(1, .5);
+
+    % Minimal flags
+    \draw (0, -1.5) node[gray] {0} +(-1, -.5) rectangle ++(1, .5);
+    \draw (2, -1.5) node {1} +(-1, -.5) rectangle ++(1, .5);
+    \draw (4, -1.5) node {1} +(-1, -.5) rectangle ++(1, .5);
+    \draw (6, -1.5) node[gray] {0} +(-1, -.5) rectangle ++(1, .5);
+    \draw (8, -1.5) node {1} +(-1, -.5) rectangle ++(1, .5);
+    \draw (10, -1.5) node[gray] {0} +(-1, -.5) rectangle ++(1, .5);
+
+    % Prefix sum
+    \draw (0, -3) node[gray] {0} +(-1, -.5) rectangle ++(1, .5);
+    \draw (2, -3) node {0} +(-1, -.5) rectangle ++(1, .5);
+    \draw (4, -3) node {1} +(-1, -.5) rectangle ++(1, .5);
+    \draw (6, -3) node[gray] {2} +(-1, -.5) rectangle ++(1, .5);
+    \draw (8, -3) node {2} +(-1, -.5) rectangle ++(1, .5);
+    \draw (10, -3) node[gray] {3} +(-1, -.5) rectangle ++(1, .5);
+
+    % Energies again
+    \draw (0, -4.5) node[gray] {$2, 2, 1$} +(-1, -.5) rectangle ++(1, .5);
+    \draw (2, -4.5) node {$2, 1, 1$} +(-1, -.5) rectangle ++(1, .5);
+    \draw (4, -4.5) node {$1, 0, 2$} +(-1, -.5) rectangle ++(1, .5);
+    \draw (6, -4.5) node[gray] {$2, 1, 1$} +(-1, -.5) rectangle ++(1, .5);
+    \draw (8, -4.5) node {$1, 2, 1$} +(-1, -.5) rectangle ++(1, .5);
+    \draw (10, -4.5) node[gray] {$2, 2, 2$} +(-1, -.5) rectangle ++(1, .5);
+
+    % Minimal energies
+    \draw[gray] (6, -6.5) node {$2, 1, 1$} +(-1, -.5) rectangle ++(1, .5);
+    \draw[gray] (8, -6.5) node {$1, 2, 1$} +(-1, -.5) rectangle ++(1, .5);
+    \draw[gray] (10, -6.5) node {$2, 2, 2$} +(-1, -.5) rectangle ++(1, .5);
+    \draw (0, -6.5) node {$2, 1, 1$} +(-1, -.5) rectangle ++(1, .5);
+    \draw (2, -6.5) node {$1, 0, 2$} +(-1, -.5) rectangle ++(1, .5);
+    \draw (4, -6.5) node {$1, 2, 1$} +(-1, -.5) rectangle ++(1, .5);
+
+    % Diagonal arrows
+    \draw[->] (2, -5) -- (0, -6);
+    \draw[->] (4, -5) -- (2, -6);
+    \draw[->] (8, -5) -- (4, -6);
+
+    % Vertical arrows
+    \foreach \x in {0,2,...,10}
+    {
+        \draw[->] (\x, -0.5) -- (\x, -1);
+        \draw[->] (\x, -2) -- (\x, -2.5);
+        %\draw[->] (\x, -3.5) -- (\x, -4);
+    }
+
+    % Background highlight of minimal energies
+    \begin{scope}[on background layer]
+        \fill[blue!20] (1, -1) rectangle (5, -5);
+        \fill[blue!20] (5, -5) -- (3, -6) -- (-1, -6) -- (1, -5);
+        \fill[blue!20] (7, -1) rectangle (9, -5);
+        \fill[blue!20] (9, -5) -- (5, -6) -- (3, -6) -- (7, -5);
+        \fill[blue!20] (-1, -6) rectangle (5, -7);
+    \end{scope}
+
+    \node[anchor=east] at (-1, 0)      {\texttt{energies}};
+    \node[anchor=west] at (-8, -0.75)  {\small{Minimize (Listing~\ref{lst:minimize})}};
+    \node[anchor=east] at (-1, -1.5)   {\texttt{is\_minimal}};
+    \node[anchor=west] at (-8, -2.25)  {\small{Prefix Sum}};
+    \node[anchor=east] at (-1, -3)     {\texttt{new\_index}};
+    \node[anchor=east] at (-1, -4.5)   {\texttt{energies}};
+    \node[anchor=west] at (-8, -5.5)   {\small{Shift minimal energies}};
+    \node[anchor=east] at (-1, -6.5)   {$\mathrm{Min}$(\texttt{energies})};
+\end{tikzpicture}
+\caption{Compacting energies using a prefix sum.
+    In this example, six threads each process a 3-dimensional energy tuple in parallel.
+    Minimal energies are shaded.}%
+\label{fig:compacting}
+\end{figure}
 
 
 \section{Data Layout}\label{sec:data}
@@ -507,7 +585,7 @@ Listing~\ref{lst:less_eq} shows how these bit-packed energies can
 be worked with in shader code to test the componentwise $\leq$-relation.
 Equality between two energies can be directly tested by comparing the two
 \texttt{u32}s,
-as is done in line~8 of Listing~\ref{lst:minimize}.
+as is done in line~7 of Listing~\ref{lst:minimize}.
 
 \begin{lstlisting}[language=WGSL,float,
     caption={WGSL Shader Code handling bit-packed energies
