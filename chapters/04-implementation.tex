@@ -9,6 +9,10 @@ but presents essentially the same algorithm structure.
 
 \section{Parallelizing the Algorithm}\label{sec:parallelization}
 
+\newcommand{\GPUline}{%
+    \SetNlSty{textbf}{\colorbox{black!30!red!15}}{}%
+}
+
 % First, definitions that are also used outside the algorithm
 \SetKwData{Updated}{updated}
 \SetKwData{Energies}{energies}
@@ -28,16 +32,20 @@ but presents essentially the same algorithm structure.
     \While{$\Visit \neq \emptyset$}{
         \pFor{$g \in \Visit$}{
             $\Visit = \Visit \setminus \{g\}$\;
-            \For{$g' \in \mathrm{Succ}(g)$} {
+            \pFor{$g' \in \mathrm{Succ}(g)$} {
+                %\GPUline
+                \SetNlSty{textbf}{\colorbox{black!30!red!15}}{}%
                 $\Updated[g'] = \{ \mathsf{upd}^{-1}(e, w(g, g')) \mid e \in \Energies[g'] \}$
             }
 
             \BlankLine
             \eIf(\tcp*[h]{attack positions}){$g \in G_a$\nllabel{ln:new_start}}{
+                \GPUline
                 $\New = \mathrm{Min} \left(
                     \bigcup_{g' \in \mathrm{Succ}(g)} \upclosed \Updated[g']
                 \right)$
             } (\tcp*[h]{defend positions}) {
+                \GPUline
                 $\New = \mathrm{Min} \left(
                     \bigcap_{g' \in \mathrm{Succ}(g)} \upclosed \Updated[g']
                 \right)$\nllabel{ln:intersection}
@@ -52,7 +60,8 @@ but presents essentially the same algorithm structure.
     }
     \Return{\Energies}
 
-    \caption{Parallel Energy Game}\label{alg:energy_game}
+    \caption{Parallel Energy Game. Highlighted lines are executed by the GPU\@.}%
+    \label{alg:energy_game}
 \end{algorithm}
 
 The basic structure of the parrallel implementation
