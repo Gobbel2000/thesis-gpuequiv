@@ -112,7 +112,7 @@ The following two sections detail how these operations have been implemented to
 efficiently run on a GPU\@.
 
 
-\subsection{Attack shader: Union}\label{subsec:attack_shader}
+\subsection{Attack Shader: Union}\label{subsec:attack_shader}
 
 In order to get the union of the upwards-closed sets,
 we can simply take the union of the minimal elements
@@ -260,7 +260,7 @@ Distributing symmetry-reduced comparisons to multiple threads is also
 more complex than each thread just comparing its energy with all others.
 
 
-\subsection{Defend shader: Intersection}\label{subsec:defend_shader}
+\subsection{Defend Shader: Intersection}\label{subsec:defend_shader}
 
 Computing the intersection of upwards-closed sets for processing defend nodes
 is significantly more complex than what was done for attack nodes.
@@ -481,7 +481,7 @@ The following two sections detail some of the techniques used to efficiently
 store the data in memory.
 
 
-\subsection{CSR Graph format}
+\subsection{CSR Graph Format}
 
 One major structure is the game graph,
 which is required in the shaders for retrieving the energy updates.
@@ -703,7 +703,7 @@ In a test of only generating a large number of defense positions,
 the shader took noticeably more time than a pure CPU-implementation of the same
 process.
 
-\subsection{Hardware limits}\label{subsec:hw_limits}
+\subsection{Hardware Limits}\label{subsec:hw_limits}
 
 Even though modern graphics cards can achieve truly incredible degrees of
 parallelization,

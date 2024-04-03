@@ -28,7 +28,7 @@ or \emph{LTS} for short~\cite{reactive_systems}.
 Figure~\ref{fig:example_lts} gives an example for what the graph of an LTS might
 look like.
 
-\begin{definition}[Labeled transition system~\cite{reactive_systems}]
+\begin{definition}[Labeled Transition System~\cite{reactive_systems}]
     A labeled transition system is a triple
     $(\mathsf{Proc}, \mathsf{Act}, {\rightarrow})$
     where:
@@ -73,7 +73,7 @@ look like.
 \end{figure}
 
 
-\section{Equivalences between Processes}
+\section{Equivalences Between Processes}
 
 One of the most important questions that arises in the context of transition
 systems is whether two processes show the same behavior.
@@ -358,7 +358,7 @@ $\mathsf{upd}(e, u) \leq e$ for all $u \in \mathbf{Up}$.
 The following definitions closely follow \textcite{bisping2023process},
 who first proposed the usage of energy games for equivalence analysis.
 
-\begin{definition}[Energy updates~\cite{bisping2023process}]\label{def:update}
+\begin{definition}[Energy Updates~\cite{bisping2023process}]\label{def:update}
     The set of $N$-dimensional energy updates $\mathbf{Up}_N$ contains
     $N$-tuples $(u_1, \ldots, u_N) \in \mathbf{Up}_N$ where each update $u_k, k
     \in [N]$ is
@@ -404,7 +404,7 @@ who first proposed the usage of energy games for equivalence analysis.
     position's predecessors.
 \end{definition}
 
-\begin{definition}[Plays and costs~\cite{bisping2023process}]
+\begin{definition}[Plays and Costs~\cite{bisping2023process}]
     A \emph{play} $\rho$ on a given game is a sequence of positions:
     $\rho = g_0g_1 \ldots g_n$ where at each step
     $g_i \in G$ and $(g_i, g_{i+1}) \in E$.
