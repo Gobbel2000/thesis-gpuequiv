@@ -245,8 +245,9 @@ for (var j = e_start; j < e_end; j++) {
 }
 \end{lstlisting}
 
-Theoretically only half of the comparisons could be performed by pruning symmetric
-pairs (i.e.\ compare only $e_1$ with $e_2$, not also $e_2$ with $e_1$),
+Theoretically, only half of the comparisons could be performed
+by pruning symmetric pairs
+(i.e.\ compare only $e_1$ with $e_2$, not also $e_2$ with $e_1$),
 but this would make the comparison itself more expensive by not only requiring
 the componentwise comparison of $e_1 \leq e_2$, but also $e_1 \geq e_2$.
 Even bigger problems arise when trying to map this approach to the GPU
@@ -269,7 +270,8 @@ regardless of the choice the defender makes.
 
 If $E_1, E_2 \subseteq \mathbf{En}$ are two sets of minimal energies
 representing the upwards-closed sets $\upclosed E_1$ and $\upclosed E_2$,
-their intersection can be obtained by taking the supremum of all their combinations:
+their intersection can be obtained
+by taking the supremum of all their combinations:
 \begin{equation*}
     \mathrm{Min} (\upclosed E_1 \cap \upclosed E_2 ) =
     \mathrm{Min} (\{ \sup(e_1, e_2) \mid e_1 \in E_1,\ e_2 \in E_2 \})
@@ -328,7 +330,7 @@ This means on smaller positions many threads may sit idle,
 while on larger positions the workgroup will have to perform the same
 operations multiple times in a loop to cover all combinations.
 
-However one big advantage is also achieved by processing a defense position in
+However, one big advantage is also achieved by processing a defense position in
 exactly one workgroup:
 the ability for precise synchronization.
 As touched on in Section~\ref{sec:gpu_model},
@@ -627,7 +629,7 @@ According to Definition~\ref{def:update}, each update value $u_k$ can be either
 no update at all (0),
 a decrement update (-1),
 or a min-update.
-At this point we constrain ourselves to min-updates $\minupd_D$
+At this point, we constrain ourselves to min-updates $\minupd_D$
 where $|D| = 2$.
 Since the index of the update value in the tuple, $k$, must always be a member of $D$,
 the only information we really need is the index of the other element, $D \setminus \{k\}$.

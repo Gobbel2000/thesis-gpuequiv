@@ -70,7 +70,7 @@ The Firefox browser even uses \texttt{wgpu} itself to implement WebGPU\@.
 A GPU can run large amounts, often thousands of threads in parallel,
 but that comes at the cost of a lot of the functionality
 that a general-purpose CPU offers.
-Therefore it has to run alongside a host CPU which delegates only some
+Therefore, it has to run alongside a host CPU which delegates only some
 workloads to the GPU, which benefit from high parallelization.
 Aside from the multi-lane architecture, another important distinction lies in
 the memory organization:
@@ -79,9 +79,9 @@ memory access on GPUs is more optimized for throughput rather than
 latency~\cite{Patterson2016}.
 
 Following their origin from computer graphics, any kind of program for a GPU is
-called a \emph{shader}, although even within the rendering pipeline, shaders
-are used for far more than just shading the image.
-In the world of GPU compute, the term \emph{kernel} is also frequently used
+called a \emph{shader}, although even within the rendering pipeline
+shaders are used for far more than just shading the image.
+In the world of GPU compute the term \emph{kernel} is also frequently used
 instead of \emph{shader}.
 Shaders are written in specific shading languages,
 in our case that is the WebGPU Shading Language (WGSL),
@@ -96,7 +96,7 @@ Threads are organized into \emph{workgroups},
 sometimes also called \emph{thread-blocks}.
 The size of a workgroup is configurable,
 a typical number is 64 threads.
-This is relevant,
+This is relevant
 because threads within a workgroup are tightly coupled at the hardware level.
 They execute the same instructions in lock-step,
 which means if one thread should perform a different calculation than another
@@ -156,7 +156,7 @@ Many algorithms would however benefit greatly from the ability for
 synchroniziation between workgroups.
 Newer GPUs do include architectural changes that allow for some amount of
 inter-workgroup synchronization~\cite{Hijma2023}.
-However this feature is not available in WebGPU due to a limitation within
+However, this feature is not available in WebGPU due to a limitation within
 Metal, which also prohibits using it on other platforms in the spirit of
 portability~\cite{Levien2021}.
 The topic of synchronization is further discussed in
