@@ -33,8 +33,7 @@ but presents essentially the same algorithm structure.
         \pFor{$g \in \Visit$}{
             $\Visit = \Visit \setminus \{g\}$\;
             \pFor{$g' \in \mathrm{Succ}(g)$} {
-                %\GPUline
-                \SetNlSty{textbf}{\colorbox{black!30!red!15}}{}%
+                \GPUline
                 $\Updated[g'] = \{ \mathsf{upd}^{-1}(e, w(g, g')) \mid e \in \Energies[g'] \}$
             }
 
