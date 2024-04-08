@@ -1,7 +1,7 @@
 The idea of this work was to speed up the algorithm to find all equivalences
 within a transition system~\cite{bisping2023process} by running it highly
 parallelized on a GPU\@.
-This objective was realized in the development of the open source software
+This objective was realized by the development of the open source software
 library \texttt{gpuequiv}.
 It can be used to find all equivalences notions of the
 linear-time--branching-time spectrum~\cite{glabbeek1990spectrum}
@@ -18,8 +18,8 @@ We have shown in Chapter~\ref{ch:implementation} how parallelization could be
 applied to the spectroscopy algorithm.
 It was found that large parts of work still had to be done on the CPU,
 in particular when dealing with the dynamic graph data structures.
-For example, generation of the energy game graph had to be done full by the CPU
-for these reasons.
+For example, generation of the energy game graph had to be done
+fully by the CPU for these reasons.
 The size of the game graph would have made it an enticing target for
 optimization,
 but in the end the time spent on generating the game by the CPU does not

@@ -80,7 +80,7 @@ systems is whether two processes show the same behavior.
 This is a difficult question
 because there are many different ways to define
 what \emph{equivalent behavior} means.
-This section will present two important definitions: Trace equivalence and
+This section will present two important definitions: Trace Equivalence and
 Bisimilarity.
 
 \subsubsection{Trace Equivalence}
@@ -88,7 +88,7 @@ Bisimilarity.
 A simple way to qualify the behavior of a process is to look at the possible
 strings of actions (traces) it can perform.
 This is particularly apparent when viewing an LTS as a sort of automaton.
-A sequence of actions $\alpha_1, \ldots, \alpha_k \in \mathsf{Act}^*$
+A sequence of actions $\alpha_1 \ldots \alpha_k \in \mathsf{Act}^*$
 is a trace of a process $p$ if
 $p \xrightarrow{\alpha_1} p_1 \xrightarrow{\alpha_2} p_2
 \ldots p_{k-1} \xrightarrow{\alpha_k} p_k$.
@@ -113,7 +113,7 @@ $\mathcal{I}(p) \colonequals \{\alpha \in \mathsf{Act} \mid
     {\exists p' \in \mathsf{Proc}}\,.\,p \xrightarrow{\alpha} p'\}$
 for a process $p$.
 
-Trace-equivalence, as well as many other equivalences,
+Trace equivalence, as well as many other equivalences,
 can also be seen directionally.
 If one only cares about whether all traces of $p$ are also traces in $q$ and
 not the other way around---meaning
@@ -296,10 +296,10 @@ they satisfy exactly the same HML-formulas~\cite{reactive_systems}.
 
 The question of finding equivalences can now be reformulated to ask instead
 about the costs required to distinguish two processes.
-Once that is known, the set of satisfied equivalences can be derived from
+Once this is known, the set of satisfied equivalences can be derived from
 Table~\ref{tab:spectrum}.
 These costs are computed with the help of an \emph{energy game},
-which is an extension over the classic \emph{reachability game}.
+which is an extension of the classic \emph{reachability game}.
 
 In a reachability game,
 the goal of the attacker player is to reach a predefined set of target positions,
@@ -315,8 +315,8 @@ these energies can be multidimensional:
     The set of $N$-dimensional energies is given as
     \[\mathbf{En}_N \colonequals {(\mathbb{N} \cup \{ \infty \})}^N.\]
     Energy tuples are compared component-wise, which creates a partial order:
-    \[(e_1, \ldots, e_N) \leq (f_1, \ldots, f_N) \Leftrightarrow e_i \leq f_i
-    \quad \text{for all } i \in [N].\]
+    \[(e_1, \ldots, e_N) \leq (f_1, \ldots, f_N) \; \Leftrightarrow \;
+        e_i \leq f_i \text{ for all } i \in [N].\]
     The supremum between two energy tuples is defined as usual:
     \[\sup((e_1, \ldots, e_N), (f_1, \ldots, f_N)) \colonequals
         (\max(e_1, f_1), \ldots, \max(e_N, f_N)).\]
@@ -338,14 +338,14 @@ expressiveness cost of a formula encoding that distinction.
 The prices in Table~\ref{tab:spectrum} are elements of $\mathbf{En}_6$ and
 bring us back from energies to equivalences.
 
-When discussing the energy game it will be convenient to consider
-upwards-closed energy sets $\upclosed E$,
+When discussing the energy game, it will be convenient to consider
+upward-closed energy sets $\upclosed E$,
 but when the energies are based on the natural numbers,
 these sets are obviously infinite in size.
 In practice we only store minimized energy sets $\mathrm{Min}(E)$.
 Because all energies in a minimized set are incomparable to each other,
 they form an antichain.
-Such an antichain, representing a larger upwards-closed set,
+Such an antichain, representing a larger upward-closed set,
 is also referred to as a \emph{Pareto frontier}~\cite{brihaye2023multi}.
 
 In the regular energy game as presented by \textcite{brihaye2023multi},
@@ -419,9 +419,9 @@ who first proposed the usage of energy games for equivalence analysis.
     in which case $\mathsf{upd}(\mathsf{EL}_\rho(i), w(g_i, g_{i+1}))$ is undefined.
 
     If a play cannot be further extended,
-    that is either the energy was depleted or
+    that is, either the energy was depleted or
     $\mathrm{Succ}(g_n) = \emptyset$,
-    that play is won by the player who is not stuck:
+    this play is won by the player who is not stuck:
     if $g_n \in G_a$, the defender wins, if $g_n \in G_d$, the attacker wins.
     Infinite plays are won by the defender.
 \end{definition}
@@ -434,7 +434,7 @@ For a starting point $g_0 \in G$ we denote this set of winning budgets as
 $W(g_0) \subseteq \mathbf{En}$.
 If we find one energy tuple $e \in W(g_0)$ that is sufficient to win the game,
 we know that all greater energies $e' \geq e$ must also lie in $W(g_0)$.
-Therefore, $W(g_0)$ is an upwards-closed set and we will often just consider
+Therefore, $W(g_0)$ is an upward-closed set and we will often just consider
 its minimal elements $\mathrm{Min}(W(g_0))$.
 Exactly this task of finding the minimal winning budgets in an energy game
 is at the center of what this work tackles with the help of GPU-acceleration,
@@ -451,7 +451,7 @@ process pair,
 which can be translated into some of the common equivalence notions.
 The part that still remains is how to construct the energy game
 so it actually serves to inform us about distinctions between processes.
-Here it will suffice to briefly recapitulate the rules that are used to
+Here, it will suffice to briefly recapitulate the rules that are used to
 construct the game graph.
 A more extensive justification for them is provided in~\cite{bisping2023process}.
 
@@ -518,20 +518,20 @@ based on the enabled actions is called the
 Generating defender positions ${(p, \emptyset, Q)}_d$ from ${(p, Q)}_a$
 is also not required,
 because their only successor is ${(p, Q)}_a$ again.
-That loop does not influence the final winning budgets,
+These loops do not influence the final winning budgets,
 therefore the partitions $Q_*$ are limited to strict subsets of $Q$.
 
 The meaning behind an attacker position ${(p, Q)}_a$ is roughly
 that the attacker wants to distinguish $p$ from all processes in $Q$.
 The game graph is typically seeded with one or more attacker positions
 in the form ${(p, \{q\})}_a$.
-Starting from there the graph is then recursively built up
+Starting from there, the graph is then recursively built up
 using the rules above.
 Finally, the winning budgets for a starting position,
 $W({(p, \{q\})}_a)$,
 are exactly the costs required to distinguish $p$ and $q$.
 
-Subsequently, attack positions ${(p, Q)}_a$ with $p \in Q$ can be left out
+Subsequently, attacker positions ${(p, Q)}_a$ with $p \in Q$ can be left out
 since it is impossible to distinguish $p$ from itself.
 This means the attacker can never win starting from such a position,
 thus not contributing any winning budgets to other positions either.
@@ -540,3 +540,6 @@ the attacker can win straight away by transitioning to
 ${(p, \emptyset, \emptyset)}_d$, which has no further successors.
 No better costs can be achieved by considering further observations from $p$
 and transitioning to any position ${(p', \emptyset)}_a$.
+%
+%Knowing the relevant aspects of the spectroscopy algorithm,
+%we can now turn towards realizing it in GPU code.

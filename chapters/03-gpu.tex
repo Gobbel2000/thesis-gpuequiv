@@ -3,7 +3,7 @@ spectroscopy algorithm presented in~\cite{bisping2023process},
 using the new WebGPU standard.
 This chapter will give an overview on why WebGPU was chosen and how that
 standard came to be among other GPU compute frameworks.
-Further we will discuss the GPU programming model,
+Further, we will discuss the GPU programming model,
 how its massively parallelized architecture can be utilized
 and which challenges it raises.
 
@@ -36,7 +36,7 @@ proprietary CUDA platform which supports Nvidia hardware only.
 AMD has more recently been working on ROCm for their own GPUs.
 OpenCL was meant to be a more portable alternative.
 
-In another area WebGL was developed to bring GPU support into web browsers.
+In another area, WebGL was developed to bring GPU support into web browsers.
 This was mainly intended for simpler graphics applications and is based on the
 long-standing OpenGL graphics API\@.
 Because of that, WebGL never really supported general-purpose compute programs.
@@ -68,7 +68,7 @@ The Firefox browser even uses \texttt{wgpu} itself to implement WebGPU\@.
 \section{Parallel Computing Model of a GPU}\label{sec:gpu_model}
 
 A GPU can run large amounts, often thousands of threads in parallel,
-but that comes at the cost of a lot of the functionality
+but this comes at the cost of a lot of the functionality
 that a general-purpose CPU offers.
 Therefore, it has to run alongside a host CPU which delegates only some
 workloads to the GPU, which benefit from high parallelization.
@@ -152,7 +152,7 @@ but can be enforced with special synchronization barriers.
 These barriers have to be passed by all threads of a workgroup simultaneously,
 guaranteeing the order of memory operations between threads~\cite{wgsl_spec}.
 
-Many algorithms would however benefit greatly from the ability for
+Many algorithms, however, would greatly benefit from the ability for
 synchroniziation between workgroups.
 Newer GPUs do include architectural changes that allow for some amount of
 inter-workgroup synchronization~\cite{Hijma2023}.

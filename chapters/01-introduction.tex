@@ -29,14 +29,14 @@ This work aims to improve on that performance by utilizing the parallel
 computing power of modern GPUs.
 The idea is that large parts of the algorithm can be computed in parallel,
 which, if successful, could result in a significant reduction in runtime.
-To that end, the contribution of this thesis is the development
+To this end, the contribution of this thesis is the development
 of \texttt{gpuequiv}%
 \footnote{The code can be found at \url{https://github.com/Gobbel2000/gpuequiv}.
 This document refers to version 1.0.0.},
 a new, GPU-accelerated implementation
 of the algorithm by \textcite{bisping2023process}.
 It processes the most critical parts of the energy game in a highly
-parallelized fashion,
+parallelized fashion
 with the goal of making the spectroscopy algorithm faster and more scalable.
 The same implementation can also be used more generally for solving energy
 games.
@@ -55,7 +55,7 @@ the GPU shaders are written in the WebGPU shading language WGSL\@.
 \subsubsection{Related Work}
 
 The broad structure for processing the energy game
-is similar to how a lot of other graph algorithms work
+is similar to a lot of other graph algorithms
 by traversing the game graph in a breadth-first manner.
 There is already a lot of research on running this category of graph
 algorithms on a GPU~\cite{Merrill2015,Busato2018,Hijma2023}.
@@ -87,9 +87,9 @@ The actual GPU-based implementation of the spectroscopy algorithm is explained
 in Chapter~\ref{ch:implementation}.
 It begins with a more high-level look at how parallelization was achieved
 (\ref{sec:parallelization}),
-but also includes more technical details around the data layouts
-that were used to efficiently handle the data (\ref{sec:data}).
+but also includes more technical details around the data layouts,
+which are used to efficiently handle the data (\ref{sec:data}).
 Finally, in Chapter~\ref{ch:benchmarks} we will evaluate the performance
-gained by parallelization with a series of benchmarks that were
+gained by parallelization with a series of benchmarks, which were
 conducted both on \texttt{gpuequiv} as well as on the original implementation
 by \textcite{bisping2023process}.
