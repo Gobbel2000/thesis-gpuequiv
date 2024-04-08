@@ -1,6 +1,8 @@
-The core contribution of this work is a GPU-accelerated implementation of the
-spectroscopy algorithm presented in~\cite{bisping2023process},
-using the new WebGPU standard.
+Knowing the relevant aspects of the spectroscopy algorithm,
+we can now turn towards realizing it in GPU code.
+The GPU-accelerated implementation,
+which makes up the core contribution of this work,
+uses the new WebGPU standard.
 This chapter will give an overview on why WebGPU was chosen and how that
 standard came to be among other GPU compute frameworks.
 Further, we will discuss the GPU programming model,
@@ -153,7 +155,7 @@ These barriers have to be passed by all threads of a workgroup simultaneously,
 guaranteeing the order of memory operations between threads~\cite{wgsl_spec}.
 
 Many algorithms, however, would greatly benefit from the ability for
-synchroniziation between workgroups.
+synchronization between workgroups.
 Newer GPUs do include architectural changes that allow for some amount of
 inter-workgroup synchronization~\cite{Hijma2023}.
 However, this feature is not available in WebGPU due to a limitation within

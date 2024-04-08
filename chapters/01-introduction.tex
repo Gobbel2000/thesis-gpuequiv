@@ -34,7 +34,7 @@ of \texttt{gpuequiv}%
 \footnote{The code can be found at \url{https://github.com/Gobbel2000/gpuequiv}.
 This document refers to version 1.0.0.},
 a new, GPU-accelerated implementation
-of the algorithm by \textcite{bisping2023process}.
+of the algorithm presented by \textcite{bisping2023process}.
 It processes the most critical parts of the energy game in a highly
 parallelized fashion
 with the goal of making the spectroscopy algorithm faster and more scalable.
@@ -87,8 +87,8 @@ The actual GPU-based implementation of the spectroscopy algorithm is explained
 in Chapter~\ref{ch:implementation}.
 It begins with a more high-level look at how parallelization was achieved
 (\ref{sec:parallelization}),
-but also includes more technical details around the data layouts,
-which are used to efficiently handle the data (\ref{sec:data}).
+but also includes more technical details about the data layouts
+used to efficiently handle the data (\ref{sec:data}).
 Finally, in Chapter~\ref{ch:benchmarks} we will evaluate the performance
 gained by parallelization with a series of benchmarks, which were
 conducted both on \texttt{gpuequiv} as well as on the original implementation

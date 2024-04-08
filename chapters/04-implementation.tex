@@ -6,6 +6,8 @@ This algorithm was described by \textcite{bisping2023process} as part of the
 spectroscopy algorithm, as well as by \textcite{brihaye2023multi},
 which focuses on \enquote{Multi-Weighted Reachability Games} in general,
 but presents essentially the same algorithm structure.
+This chapter will explain
+how the algorithm can be run by a GPU\@.
 
 \section{Parallelizing the Algorithm}\label{sec:parallelization}
 
@@ -494,8 +496,9 @@ This matrix would require $|G|^2$ entries and, since the game graph is
 relatively sparse, the majority of those entries would be empty.
 Such a high memory overhead would not make for a scalable implementation,
 especially since the game graphs can easily get very large.
-A common way of more efficiently storing graphs or sparse matrices in general is
-the \emph{compressed sparse row} format (CSR)~\cite{Merrill2015,Hijma2023}.
+Instead, we use the \emph{compressed sparse row} format (CSR),
+which is a common way of more efficiently storing graphs
+or sparse matrices in general~\mbox{\cite{Merrill2015,Hijma2023}}.
 
 The CSR format consists of three flat arrays.
 The array $C$ holds all \emph{column-indices} of non-empty matrix cells in order.
@@ -705,7 +708,7 @@ But for similar reasons, this process had to be fully done on the CPU\@.
 The generated graph is again a highly irregular data structure and
 even parallelizing only the most critical parts could not achieve a speedup.
 The fact that the positions themselves contain arbitrarily-sized sets of
-processes doesn't help either.
+processes does not help either.
 In a test of only generating a large number of defense positions,
 the shader took noticeably more time than a pure CPU-implementation of the same
 process.
@@ -747,5 +750,5 @@ The largest allocation is required for the game graph,
 where the energy updates require 4 bytes per edge.
 This limits the size of the game graph to
 $2^{29} - 1 = 536\,870\,911$ edges.
-Based on the benchmarks shown in Chapter~\ref{ch:benchmarks},
+Based on the benchmarks shown in Table~\ref{tab:benchmarks},
 processing such a maximally-sized graph would probably take around 4 minutes.

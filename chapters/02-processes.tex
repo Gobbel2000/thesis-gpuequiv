@@ -12,9 +12,9 @@ by testing all of those equivalences at once~\cite{bisping2023process}.
 
 \section{Modeling Processes}
 
-We represent processes in a directed graph.
+We represent processes as nodes in a directed graph.
 The outgoing edges of a node are the possible steps it can perform next.
-Each edge is labelled with a specific action that occurs when taking that step.
+Each edge is labeled with a specific action that occurs when taking that step.
 After performing an action,
 the process enters a new state represented by another node,
 which is itself a process with its set of actions.
@@ -101,7 +101,7 @@ For example, in Figure~\ref{fig:example_lts} the traces of $p_0$ are
 $\mathit{Traces}(p_0) = \{a, ab, ac\}$.
 The process $p_4$ can produce exactly the same traces,
 so $p_0$ and $p_4$ are trace-equivalent.
-However it is not difficult to see some difference in the graphs of both
+However, it is not difficult to see some difference in the graphs of both
 processes that this comparison seems to ignore.
 Indeed, trace equivalence is one of the weakest equivalence notions,
 meaning it more easily equates processes.
@@ -168,8 +168,8 @@ otherwise it does not satisfy it.
 We adopt the syntax from~\cite{bisping2023process},
 which is slightly different although functionally equivalent to the definition
 in~\cite{reactive_systems}.
-This is relevant because we will later require precise control over the
-structure of HML-formulas.
+This is relevant because the spectroscopy algorithm requires
+precise control over the structure of HML-formulas.
 
 \begin{definition}[%
     Hennessy--Milner logic~\cite{bisping2023process,reactive_systems}]%
@@ -199,7 +199,7 @@ structure of HML-formulas.
             \bigcap_{i \in I} \llbracket \psi_i \rrbracket
     \end{align*}
     We use $\llbracket \neg \varphi \rrbracket$,
-    but $\neg \varphi$ is not a member of $\mathcal{M}$:
+    but $\neg \varphi$ is not actually a member of $\mathcal{M}$:
     negated formulas can only occur inside a conjunction.
     The recursion in the above definition can be terminated using the empty
     conjunction $\top \colonequals \bigwedge \{\}$
@@ -253,7 +253,7 @@ can we call $p$ and $q$ equivalent with respect to the chosen set of formulas.
 
 \textcite{bisping2023process} represents these subsets of $\mathcal{M}$
 by assigning a 6-dimensional \enquote{expressiveness price} to each formula
-and construcing the subsets by including all formulas below a maximum price.
+and constructing the subsets by including all formulas below a maximum price.
 Without going further into the exact definition of the prices,
 all equivalences, along with their price vector representing a subset of
 HML-formulas are listed in Table~\ref{tab:spectrum}.
@@ -352,8 +352,8 @@ In the regular energy game as presented by \textcite{brihaye2023multi},
 energies are simply reduced by subtracting another vector of natural numbers.
 However for the purpose of the spectroscopy algorithm,
 we require a special update function that includes $\minupd$-updates.
-It is important to note that with this definition energies are only ever
-\emph{decreased} by an update:
+It is important to note that with the following definition
+energies are only ever \emph{decreased} by an update:
 $\mathsf{upd}(e, u) \leq e$ for all $u \in \mathbf{Up}$.
 The following definitions closely follow \textcite{bisping2023process},
 who first proposed the usage of energy games for equivalence analysis.
@@ -455,7 +455,7 @@ Here, it will suffice to briefly recapitulate the rules that are used to
 construct the game graph.
 A more extensive justification for them is provided in~\cite{bisping2023process}.
 
-The game graph for an transition system
+The game graph for a transition system
 $(\mathsf{Proc}, \mathsf{Act}, {\rightarrow})$
 is constructed around three types of game positions:
 
@@ -540,6 +540,3 @@ the attacker can win straight away by transitioning to
 ${(p, \emptyset, \emptyset)}_d$, which has no further successors.
 No better costs can be achieved by considering further observations from $p$
 and transitioning to any position ${(p', \emptyset)}_a$.
-%
-%Knowing the relevant aspects of the spectroscopy algorithm,
-%we can now turn towards realizing it in GPU code.

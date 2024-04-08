@@ -85,7 +85,7 @@ All benchmarks were run on the same machine with an AMD 5800X processor,
         LTS~\cite{vlts}
         &$|\mathsf{Proc}|$ &$\sim_B$
         &$|G|$ &$|E|$
-        &\cite{bisping2023process} &{gpuequiv} &{Game} \\
+        &\cite{bisping2023process} &{\texttt{gpuequiv}} &{Game} \\
         \midrule
 
         \texttt{peterson}~\cite{bisping2023process}
@@ -130,7 +130,7 @@ than the game graph for \texttt{vasy\_10\_56},
 even though the latter has almost twice as many states after minimization.
 The LTS \texttt{vasy\_25\_25} is a curiosity
 because it produces an empty game graph.
-This is due to the fact that each processes in this system has a transition
+This is due to the fact that each process in this system has a transition
 with a unique action,
 so there is not a single enabledness-equivalent process pair.
 Therefore, there are no starting positions for the game graph and we already
@@ -138,7 +138,7 @@ know that no equivalence holds anywhere in the system.
 
 The LTS \texttt{vasy\_18\_73} could not be computed by either implementation
 because of memory constraints.
-\texttt{gpuequiv} created the energy game in 112 seconds,
+\texttt{gpuequiv} could successfully generate the energy game in 112 seconds,
 but the graph was slightly too large to fit into a GPU buffer:
 as mentioned in Section~\ref{subsec:hw_limits},
 the largest graph we can load has 536\,870\,911 edges.
